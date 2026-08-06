@@ -11,7 +11,7 @@ try {
     resolve(projectRoot, 'src/generated/schema-values.ts'),
   );
   console.log(
-    `Generated ${map.validation.entityCount} entities, ${map.validation.edgeCount} edges, and ${map.validation.workflowCount} workflow(s).`,
+    `Generated ${map.validation.entityCount} entities, ${map.validation.edgeCount} edges, ${map.validation.stageCount} stages, ${map.validation.coverageGapCount} coverage gap(s).`,
   );
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

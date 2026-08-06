@@ -14,7 +14,9 @@
     "risk",
     "actor_type",
     "description",
-    "owner"
+    "owner",
+    "exec_summary",
+    "human_accountable"
   ],
   "properties": {
     "id": {
@@ -38,10 +40,12 @@
     "plane": {
       "enum": [
         "request",
-        "control",
-        "execution",
         "knowledge",
+        "control",
+        "governance",
+        "execution",
         "assurance",
+        "learning",
         "external"
       ]
     },
@@ -80,13 +84,59 @@
         "external"
       ]
     },
+    "automation_level": {
+      "description": "How much of this boundary a machine is allowed to decide on its own.",
+      "enum": [
+        "human-only",
+        "human-approves",
+        "agent-with-review",
+        "agent-autonomous",
+        "deterministic"
+      ]
+    },
+    "data_classification": {
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted",
+        "none"
+      ]
+    },
     "description": {
       "type": "string",
       "minLength": 1
     },
-    "owner": {
+    "exec_summary": {
+      "description": "One plain-language sentence for a non-technical reader. No product or service names.",
       "type": "string",
       "minLength": 1
+    },
+    "business_value": {
+      "description": "Why a leadership team should fund this boundary.",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Delivery team accountable for building and running this boundary.",
+      "type": "string",
+      "minLength": 1
+    },
+    "human_accountable": {
+      "description": "Named human role that answers for this boundary's decisions.",
+      "type": "string",
+      "minLength": 1
+    },
+    "build_wave": {
+      "description": "Delivery wave. 1 is the walking skeleton; 4 is the learning loop.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "stage_order": {
+      "description": "Position of a workflow-step in the reference diagram. Stage 0 is the always-on platform band.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 7
     },
     "tags": {
       "type": "array",
@@ -120,6 +170,24 @@
       "type": "string",
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
+    "reference_elements": {
+      "description": "Workflow-step only. Canonical boxes drawn in the reference diagram for this stage. Every element must be claimed by at least one component or the map reports a coverage gap.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "reference_map": {
+      "description": "Component only. Reference-diagram elements this component implements. Unknown values fail generation.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
     "responsibilities": {
       "type": "array",
       "items": {
@@ -139,6 +207,15 @@
       "items": {
         "type": "string"
       },
+      "default": []
+    },
+    "data_owned": {
+      "description": "Authoritative state objects. Exactly one component may own each object.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
       "default": []
     },
     "inputs": {
@@ -175,6 +252,187 @@
         "type": "string"
       },
       "default": []
+    },
+    "open_questions": {
+      "description": "Honest unknowns. These surface in the map as amber, not as silent gaps.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "api_contract": {
+      "description": "The callable surface. Each entry names exactly one caller and one worker.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation",
+          "kind",
+          "caller",
+          "worker",
+          "request",
+          "response",
+          "failure"
+        ],
+        "properties": {
+          "operation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "sync-api",
+              "async-event",
+              "batch-job",
+              "human-decision",
+              "query"
+            ]
+          },
+          "caller": {
+            "description": "Who initiates. Always a named component, channel, or human role.",
+            "type": "string",
+            "minLength": 1
+          },
+          "worker": {
+            "description": "Who performs the work and owns the result.",
+            "type": "string",
+            "minLength": 1
+          },
+          "request": {
+            "type": "string",
+            "minLength": 1
+          },
+          "response": {
+            "type": "string",
+            "minLength": 1
+          },
+          "idempotency": {
+            "type": "string"
+          },
+          "timeout": {
+            "type": "string"
+          },
+          "auth": {
+            "type": "string"
+          },
+          "failure": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "events_emitted": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "events_consumed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "slo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "availability": {
+          "type": "string"
+        },
+        "latency": {
+          "type": "string"
+        },
+        "throughput": {
+          "type": "string"
+        },
+        "recovery": {
+          "type": "string"
+        }
+      }
+    },
+    "cost": {
+      "description": "MVP running cost. Ranges are monthly USD for one non-production environment at the stated volume driver.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "monthly_usd_low",
+        "monthly_usd_high",
+        "driver"
+      ],
+      "properties": {
+        "monthly_usd_low": {
+          "type": "number",
+          "minimum": 0
+        },
+        "monthly_usd_high": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model_usd_per_task_low": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model_usd_per_task_high": {
+          "type": "number",
+          "minimum": 0
+        },
+        "driver": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string"
+        },
+        "azure": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service",
+              "sku",
+              "monthly_usd_low",
+              "monthly_usd_high"
+            ],
+            "properties": {
+              "service": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sku": {
+                "type": "string",
+                "minLength": 1
+              },
+              "monthly_usd_low": {
+                "type": "number",
+                "minimum": 0
+              },
+              "monthly_usd_high": {
+                "type": "number",
+                "minimum": 0
+              },
+              "note": {
+                "type": "string"
+              },
+              "shared": {
+                "description": "True when the same instance is shared with other components. Shared lines are counted once in the platform rollup.",
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
