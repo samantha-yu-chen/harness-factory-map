@@ -23,6 +23,7 @@ export class SpecificationError extends Error {
 interface ParsedFile {
   metadata: SpecificationMetadata;
   sourcePath: string;
+  rawMarkdown: string;
   body: string;
 }
 
@@ -128,6 +129,7 @@ export async function parseSpecification(
   return {
     metadata,
     sourcePath,
+    rawMarkdown: raw,
     body: document.content.trim(),
   };
 }
@@ -259,7 +261,12 @@ export function buildMap(specifications: ParsedFile[], schemaId = schema.$id): G
     }))
     .sort((left, right) => left.id.localeCompare(right.id));
   const entities = specifications
-    .map(({ metadata, sourcePath, body }) => ({ ...metadata, sourcePath, body }))
+    .map(({ metadata, sourcePath, rawMarkdown, body }) => ({
+      ...metadata,
+      sourcePath,
+      rawMarkdown,
+      body,
+    }))
     .sort((left, right) => left.id.localeCompare(right.id));
 
   return {

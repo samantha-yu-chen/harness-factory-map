@@ -53,6 +53,7 @@
         "Report timeout and preserve evidence"
       ],
       "sourcePath": "specs/components/agent-runtime.md",
+      "rawMarkdown": "---\nid: agent-runtime\nname: Agent Runtime\nentity_type: component\nplane: execution\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: agent\ndescription: Runs one bounded agent assignment and returns results and evidence.\nowner: harness-platform\ntags:\n  - execution\n  - component\ndepends_on: []\nconnects_to:\n  - tool-gateway\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 7\nresponsibilities:\n  - Execute the assignment\n  - Use only granted tools\n  - Return structured result\nowns:\n  - Temporary reasoning session\ndoes_not_own:\n  - Cannot own execution state\n  - Cannot expand its own permissions\ninputs: []\noutputs:\n  - Agent result\n  - Artifacts\n  - Usage report\npermissions:\n  - Use explicitly granted capabilities\nrestrictions:\n  - Cannot own execution state\n  - Cannot expand its own permissions\nfailure_behaviour:\n  - Stop on revoked grant\n  - Report timeout and preserve evidence\n---\n\n# Agent Runtime\n\n## Purpose\n\nRuns one bounded agent assignment and returns results and evidence.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Agent Runtime\n\n## Purpose\n\nRuns one bounded agent assignment and returns results and evidence.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -101,7 +102,80 @@
         "Alert on persistence failure"
       ],
       "sourcePath": "specs/components/audit-store.md",
+      "rawMarkdown": "---\nid: audit-store\nname: Audit Store\nentity_type: component\nplane: assurance\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: deterministic-system\ndescription: Append-only record of requests, decisions, grants, actions, and results.\nowner: harness-platform\ntags:\n  - assurance\n  - component\ndepends_on: []\nconnects_to: []\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 12\nresponsibilities:\n  - Preserve attributable events\n  - Support investigation\nowns:\n  - Audit events\ndoes_not_own:\n  - Cannot rewrite history\n  - Cannot become workflow truth\ninputs: []\noutputs:\n  - Queryable audit trail\npermissions:\n  - Append validated audit events\nrestrictions:\n  - Cannot rewrite history\n  - Cannot become workflow truth\nfailure_behaviour:\n  - Reject invalid events\n  - Alert on persistence failure\n---\n\n# Audit Store\n\n## Purpose\n\nAppend-only record of requests, decisions, grants, actions, and results.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Audit Store\n\n## Purpose\n\nAppend-only record of requests, decisions, grants, actions, and results.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
+    },
+    {
+      "id": "azure-cloud-scope",
+      "name": "Azure Cloud Scope MVP",
+      "entity_type": "component",
+      "plane": "knowledge",
+      "scope": "mvp",
+      "status": "specified",
+      "risk": "high",
+      "actor_type": "deterministic-system",
+      "description": "Proposed Azure placement and data-memory boundaries for the Harness Agent Factory presentation MVP.",
+      "owner": "cloud-platform",
+      "tags": [
+        "azure",
+        "cloud-scope",
+        "enterprise-memory",
+        "rag"
+      ],
+      "depends_on": [
+        "policy-engine",
+        "audit-store"
+      ],
+      "connects_to": [
+        "user-request",
+        "intake-service",
+        "task-contract",
+        "risk-classifier",
+        "orchestrator",
+        "agent-runtime",
+        "sandbox",
+        "review-service",
+        "pull-request"
+      ],
+      "responsibilities": [
+        "Define proposed Azure service placement for each target workflow section",
+        "Separate enterprise source data, RAG retrieval, operational memory, and observability",
+        "Keep cloud responsibilities bounded and attributable"
+      ],
+      "owns": [
+        "Azure placement map",
+        "Cloud boundary notes for the MVP"
+      ],
+      "does_not_own": [
+        "Azure deployment or infrastructure provisioning",
+        "Agent reasoning or production orchestration",
+        "Enterprise policy authority",
+        "External source-system integration"
+      ],
+      "inputs": [
+        "Approved Markdown specifications",
+        "Enterprise data classification and ownership decisions"
+      ],
+      "outputs": [
+        "Cloud component placement",
+        "Data memory and retrieval boundaries",
+        "Engineering acceptance criteria"
+      ],
+      "permissions": [
+        "Read approved specifications and architecture decisions"
+      ],
+      "restrictions": [
+        "No live Azure credentials or service calls in the presentation prototype",
+        "RAG retrieval cannot approve work, grant permissions, or replace policy",
+        "Agents cannot write directly to enterprise source-of-truth data"
+      ],
+      "failure_behaviour": [
+        "Block cloud design when a data owner or boundary is missing",
+        "Treat unavailable retrieval as an explicit degraded path, never as permission to guess"
+      ],
+      "sourcePath": "specs/system/azure-cloud-scope.md",
+      "rawMarkdown": "---\nid: azure-cloud-scope\nname: Azure Cloud Scope MVP\nentity_type: component\nplane: knowledge\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Proposed Azure placement and data-memory boundaries for the Harness Agent Factory presentation MVP.\nowner: cloud-platform\ntags:\n  - azure\n  - cloud-scope\n  - enterprise-memory\n  - rag\ndepends_on:\n  - policy-engine\n  - audit-store\nconnects_to:\n  - user-request\n  - intake-service\n  - task-contract\n  - risk-classifier\n  - orchestrator\n  - agent-runtime\n  - sandbox\n  - review-service\n  - pull-request\nresponsibilities:\n  - Define proposed Azure service placement for each target workflow section\n  - Separate enterprise source data, RAG retrieval, operational memory, and observability\n  - Keep cloud responsibilities bounded and attributable\nowns:\n  - Azure placement map\n  - Cloud boundary notes for the MVP\ndoes_not_own:\n  - Azure deployment or infrastructure provisioning\n  - Agent reasoning or production orchestration\n  - Enterprise policy authority\n  - External source-system integration\ninputs:\n  - Approved Markdown specifications\n  - Enterprise data classification and ownership decisions\noutputs:\n  - Cloud component placement\n  - Data memory and retrieval boundaries\n  - Engineering acceptance criteria\npermissions:\n  - Read approved specifications and architecture decisions\nrestrictions:\n  - No live Azure credentials or service calls in the presentation prototype\n  - RAG retrieval cannot approve work, grant permissions, or replace policy\n  - Agents cannot write directly to enterprise source-of-truth data\nfailure_behaviour:\n  - Block cloud design when a data owner or boundary is missing\n  - Treat unavailable retrieval as an explicit degraded path, never as permission to guess\n---\n\n# Azure Cloud Scope MVP\n\n## Purpose\n\nThis specification is the proposed Azure placement for the Harness Agent Factory. It is an engineering handoff for the next bounded implementation ticket, not a deployment manifest and not a production agent runtime.\n\nThe local prototype renders this document's concepts as a visual cloud-scope layer. The prototype does not connect to Azure.\n\n## System boundary\n\nThe cloud layer supports request intake, governed retrieval, task-contract persistence, deterministic routing, bounded execution, evidence capture, and learning signals.\n\nIt does not own enterprise policy, invent permissions, replace human approval, or allow an Agent to mutate enterprise source data directly.\n\n## Target workflow placement\n\n| Section | Proposed Azure components | Responsibility boundary |\n| --- | --- | --- |\n| User logs request | Azure Front Door Standard/Premium; Azure Container Apps | Public HTTPS/WAF entry and request normalization only. No agent execution. |\n| System check | Azure AI Search; Azure Data Lake Storage Gen2 | Read-only existing-solution retrieval over approved content. Search results are evidence, not approval. |\n| Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |\n| Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |\n| Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |\n| Harness Agent Team execution | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Run finite workers, dispatch events, provide versioned images, and stage evidence. Workers do not own authoritative state. |\n| Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |\n\n## Enterprise data memory\n\nThe phrase “enterprise memory” is split into three separate boundaries. There is no single unrestricted database that the Agent can query and update.\n\n### 1. Source-of-truth data lake — Azure Data Lake Storage Gen2\n\nUse ADLS Gen2 for raw and curated enterprise documents such as policies and procedures, legal documents, finance rules, procurement process, product knowledge, sales playbooks, templates, workflows, decisions, audit history, and approved data exports.\n\nData owners publish versioned content. Every document needs an owner, classification, effective date, source identity, and retention rule. Agents, RAG retrieval, and operational services do not write directly to this source boundary.\n\n### 2. RAG retrieval boundary — Azure AI Search\n\nAzure AI Search holds a derived text/vector/hybrid retrieval index built from approved source content. Retrieval should return source identity, document version, access-filter result, relevant passage, and citation metadata.\n\nThe search index is not the policy store. Retrieval can ground a response with approved, cited data, but it cannot approve a task, grant permissions, change a task contract, or make an execution decision. If retrieval is unavailable or confidence is insufficient, the workflow must make that condition visible and route to clarification or human review.\n\n### 3. Operational memory database — Azure Cosmos DB for NoSQL\n\nUse Cosmos DB for versioned task contracts, workflow context, approval records, memory pointers, idempotency keys, and execution checkpoints. This is the operational system of record for workflow data, not the source of enterprise knowledge.\n\nWrites must be schema-versioned and attributable to an owner. Stale or unauthorized updates are rejected. A task contract may reference retrieved evidence by source ID and version; it must not copy unverified retrieval into policy truth.\n\n## Data flow\n\n1. Data owners publish approved documents to ADLS Gen2.\n2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.\n3. System check and bounded Agents request read-only retrieval with task and authorization context.\n4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.\n5. Cosmos DB stores the versioned operational context and decisions.\n6. Execution artifacts and audit evidence are staged separately from source documents.\n7. Learning signals are appended to the evidence boundary for human-led improvement.\n\n## Engineering acceptance criteria\n\n- [ ] Every target workflow section has a named Azure component, one accountable owner, and a written boundary.\n- [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.\n- [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.\n- [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.\n- [ ] Cosmos DB is identified as the operational memory database for versioned workflow records, not enterprise policy truth.\n- [ ] Task-contract and workflow writes are schema-versioned, attributable, idempotent, and reject stale updates.\n- [ ] An unavailable or low-confidence retrieval result produces an explicit degraded path or human-review route.\n- [ ] Agent workers cannot write directly to ADLS source-of-truth data or bypass the policy boundary.\n- [ ] The local prototype remains free of Azure credentials, SDK calls, deployment files, and external API calls.\n- [ ] Each proposed service can be replaced without changing the Markdown component boundaries or acceptance criteria.\n\n## Non-goals for this MVP\n\n- Provisioning Azure resources, VNets, private endpoints, RBAC assignments, or CI/CD.\n- Implementing live RAG, embeddings, an LLM, connectors, or external enterprise systems.\n- Defining production retention, capacity, cost, disaster recovery, or compliance controls.\n- Allowing an Agent to autonomously update policies, indexes, source data, or its own permissions.\n",
+      "body": "# Azure Cloud Scope MVP\n\n## Purpose\n\nThis specification is the proposed Azure placement for the Harness Agent Factory. It is an engineering handoff for the next bounded implementation ticket, not a deployment manifest and not a production agent runtime.\n\nThe local prototype renders this document's concepts as a visual cloud-scope layer. The prototype does not connect to Azure.\n\n## System boundary\n\nThe cloud layer supports request intake, governed retrieval, task-contract persistence, deterministic routing, bounded execution, evidence capture, and learning signals.\n\nIt does not own enterprise policy, invent permissions, replace human approval, or allow an Agent to mutate enterprise source data directly.\n\n## Target workflow placement\n\n| Section | Proposed Azure components | Responsibility boundary |\n| --- | --- | --- |\n| User logs request | Azure Front Door Standard/Premium; Azure Container Apps | Public HTTPS/WAF entry and request normalization only. No agent execution. |\n| System check | Azure AI Search; Azure Data Lake Storage Gen2 | Read-only existing-solution retrieval over approved content. Search results are evidence, not approval. |\n| Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |\n| Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |\n| Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |\n| Harness Agent Team execution | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Run finite workers, dispatch events, provide versioned images, and stage evidence. Workers do not own authoritative state. |\n| Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |\n\n## Enterprise data memory\n\nThe phrase “enterprise memory” is split into three separate boundaries. There is no single unrestricted database that the Agent can query and update.\n\n### 1. Source-of-truth data lake — Azure Data Lake Storage Gen2\n\nUse ADLS Gen2 for raw and curated enterprise documents such as policies and procedures, legal documents, finance rules, procurement process, product knowledge, sales playbooks, templates, workflows, decisions, audit history, and approved data exports.\n\nData owners publish versioned content. Every document needs an owner, classification, effective date, source identity, and retention rule. Agents, RAG retrieval, and operational services do not write directly to this source boundary.\n\n### 2. RAG retrieval boundary — Azure AI Search\n\nAzure AI Search holds a derived text/vector/hybrid retrieval index built from approved source content. Retrieval should return source identity, document version, access-filter result, relevant passage, and citation metadata.\n\nThe search index is not the policy store. Retrieval can ground a response with approved, cited data, but it cannot approve a task, grant permissions, change a task contract, or make an execution decision. If retrieval is unavailable or confidence is insufficient, the workflow must make that condition visible and route to clarification or human review.\n\n### 3. Operational memory database — Azure Cosmos DB for NoSQL\n\nUse Cosmos DB for versioned task contracts, workflow context, approval records, memory pointers, idempotency keys, and execution checkpoints. This is the operational system of record for workflow data, not the source of enterprise knowledge.\n\nWrites must be schema-versioned and attributable to an owner. Stale or unauthorized updates are rejected. A task contract may reference retrieved evidence by source ID and version; it must not copy unverified retrieval into policy truth.\n\n## Data flow\n\n1. Data owners publish approved documents to ADLS Gen2.\n2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.\n3. System check and bounded Agents request read-only retrieval with task and authorization context.\n4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.\n5. Cosmos DB stores the versioned operational context and decisions.\n6. Execution artifacts and audit evidence are staged separately from source documents.\n7. Learning signals are appended to the evidence boundary for human-led improvement.\n\n## Engineering acceptance criteria\n\n- [ ] Every target workflow section has a named Azure component, one accountable owner, and a written boundary.\n- [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.\n- [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.\n- [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.\n- [ ] Cosmos DB is identified as the operational memory database for versioned workflow records, not enterprise policy truth.\n- [ ] Task-contract and workflow writes are schema-versioned, attributable, idempotent, and reject stale updates.\n- [ ] An unavailable or low-confidence retrieval result produces an explicit degraded path or human-review route.\n- [ ] Agent workers cannot write directly to ADLS source-of-truth data or bypass the policy boundary.\n- [ ] The local prototype remains free of Azure credentials, SDK calls, deployment files, and external API calls.\n- [ ] Each proposed service can be replaced without changing the Markdown component boundaries or acceptance criteria.\n\n## Non-goals for this MVP\n\n- Provisioning Azure resources, VNets, private endpoints, RBAC assignments, or CI/CD.\n- Implementing live RAG, embeddings, an LLM, connectors, or external enterprise systems.\n- Defining production retention, capacity, cost, disaster recovery, or compliance controls.\n- Allowing an Agent to autonomously update policies, indexes, source data, or its own permissions."
     },
     {
       "id": "bounded-engineering-ticket",
@@ -156,6 +230,7 @@
         "Display missing workflow references as validation errors"
       ],
       "sourcePath": "specs/workflows/bounded-engineering-ticket.md",
+      "rawMarkdown": "---\nid: bounded-engineering-ticket\nname: Bounded Engineering Ticket\nentity_type: workflow-step\nplane: control\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Reference workflow from user request to a reviewable pull request with audit evidence.\nowner: harness-platform\ntags:\n  - workflow\n  - engineering\ndepends_on:\n  - user-request\n  - intake-service\n  - task-contract\n  - risk-classifier\n  - orchestrator\n  - policy-engine\n  - agent-runtime\n  - tool-gateway\n  - sandbox\n  - review-service\n  - pull-request\n  - audit-store\nconnects_to: []\nresponsibilities:\n  - Define the initial end-to-end trace\nowns:\n  - Workflow ordering for the visual trace\ndoes_not_own:\n  - Runtime state transitions\ninputs:\n  - User request\noutputs:\n  - Reviewable pull request\npermissions: []\nrestrictions:\n  - Visual specification only\nfailure_behaviour:\n  - Display missing workflow references as validation errors\n---\n\n# Bounded Engineering Ticket\n\n## Happy path\n\n1. A user submits a request.\n2. Intake validates and clarifies the request.\n3. A versioned task contract is produced.\n4. Risk classification selects required controls.\n5. The orchestrator creates and owns execution state.\n6. The policy engine authorises a bounded assignment.\n7. The agent runtime performs reasoning under the assignment.\n8. The tool gateway validates every capability use.\n9. Commands run inside an isolated sandbox.\n10. A separate review service evaluates the change.\n11. A pull request is created but not automatically merged.\n12. Material actions and decisions are appended to the audit store.\n\n## Required future failure paths\n\n- Clarification required.\n- Request rejected.\n- Policy denied.\n- Budget exhausted.\n- Agent timed out.\n- Sandbox failed.\n- Review requested changes.\n- Human approval delayed or rejected.\n- Duplicate execution detected.\n",
       "body": "# Bounded Engineering Ticket\n\n## Happy path\n\n1. A user submits a request.\n2. Intake validates and clarifies the request.\n3. A versioned task contract is produced.\n4. Risk classification selects required controls.\n5. The orchestrator creates and owns execution state.\n6. The policy engine authorises a bounded assignment.\n7. The agent runtime performs reasoning under the assignment.\n8. The tool gateway validates every capability use.\n9. Commands run inside an isolated sandbox.\n10. A separate review service evaluates the change.\n11. A pull request is created but not automatically merged.\n12. Material actions and decisions are appended to the audit store.\n\n## Required future failure paths\n\n- Clarification required.\n- Request rejected.\n- Policy denied.\n- Budget exhausted.\n- Agent timed out.\n- Sandbox failed.\n- Review requested changes.\n- Human approval delayed or rejected.\n- Duplicate execution detected."
     },
     {
@@ -203,6 +278,7 @@
         "Remain authoritative after worker failure"
       ],
       "sourcePath": "specs/components/execution-store.md",
+      "rawMarkdown": "---\nid: execution-store\nname: Execution Store\nentity_type: component\nplane: control\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: deterministic-system\ndescription: Authoritative persistence for execution state, versions, leases, and checkpoints.\nowner: harness-platform\ntags:\n  - control\n  - component\ndepends_on: []\nconnects_to:\n  - orchestrator\nworkflow_id: bounded-engineering-ticket\nresponsibilities:\n  - Persist execution truth\n  - Enforce concurrency control\nowns:\n  - Execution records\ndoes_not_own:\n  - Cannot decide workflow policy\ninputs: []\noutputs:\n  - Versioned state\npermissions:\n  - Read and write execution data\nrestrictions:\n  - Cannot decide workflow policy\nfailure_behaviour:\n  - Reject stale writes\n  - Remain authoritative after worker failure\n---\n\n# Execution Store\n\n## Purpose\n\nAuthoritative persistence for execution state, versions, leases, and checkpoints.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Execution Store\n\n## Purpose\n\nAuthoritative persistence for execution state, versions, leases, and checkpoints.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -256,6 +332,7 @@
         "Fail generation on invalid specifications"
       ],
       "sourcePath": "specs/system/system-purpose.md",
+      "rawMarkdown": "---\nid: harness-factory-map\nname: Harness Factory Map\nentity_type: component\nplane: control\nscope: mvp\nstatus: specified\nrisk: low\nactor_type: deterministic-system\ndescription: Local visual source of truth for the future enterprise harness architecture and delivery map.\nowner: system-owner\ntags:\n  - visualisation\n  - specification\n  - local-first\ndepends_on: []\nconnects_to:\n  - user-request\n  - orchestrator\nresponsibilities:\n  - Render specifications as an interactive graph\n  - Expose boundaries and relationships\n  - Validate specification metadata\nowns:\n  - Generated architecture map\ndoes_not_own:\n  - Production harness execution\n  - Enterprise policy\ninputs:\n  - Markdown specifications\noutputs:\n  - Generated graph\n  - Validation results\npermissions:\n  - Read repository specifications during build\nrestrictions:\n  - No external runtime services\n  - No agent execution\nfailure_behaviour:\n  - Fail generation on invalid specifications\n---\n\n# Harness Factory Map\n\n## Purpose\n\nProvide a navigable design and delivery map for a future enterprise agent harness.\n\n## Boundary\n\nThis component visualises and validates specifications. It is not the production system described by those specifications.\n",
       "body": "# Harness Factory Map\n\n## Purpose\n\nProvide a navigable design and delivery map for a future enterprise agent harness.\n\n## Boundary\n\nThis component visualises and validates specifications. It is not the production system described by those specifications."
     },
     {
@@ -308,6 +385,7 @@
         "Reject unsupported requests"
       ],
       "sourcePath": "specs/components/intake-service.md",
+      "rawMarkdown": "---\nid: intake-service\nname: Intake Service\nentity_type: component\nplane: request\nscope: mvp\nstatus: specified\nrisk: medium\nactor_type: deterministic-system\ndescription: Validates requests and gathers enough information to create a bounded task contract.\nowner: harness-platform\ntags:\n  - request\n  - component\ndepends_on: []\nconnects_to:\n  - task-contract\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 2\nresponsibilities:\n  - Validate required information\n  - Request clarification\n  - Preserve original request\nowns:\n  - Intake record\ndoes_not_own:\n  - Cannot approve execution\n  - Cannot modify original request\ninputs: []\noutputs:\n  - Task Contract candidate\npermissions:\n  - Read request data\n  - Write intake status\nrestrictions:\n  - Cannot approve execution\n  - Cannot modify original request\nfailure_behaviour:\n  - Pause for clarification\n  - Reject unsupported requests\n---\n\n# Intake Service\n\n## Purpose\n\nValidates requests and gathers enough information to create a bounded task contract.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Intake Service\n\n## Purpose\n\nValidates requests and gathers enough information to create a bounded task contract.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -363,6 +441,7 @@
         "Prevent duplicate active execution"
       ],
       "sourcePath": "specs/components/orchestrator.md",
+      "rawMarkdown": "---\nid: orchestrator\nname: Orchestrator\nentity_type: component\nplane: control\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: deterministic-system\ndescription: Owns and advances execution workflow state according to approved transitions.\nowner: harness-platform\ntags:\n  - control\n  - component\ndepends_on: []\nconnects_to:\n  - execution-store\n  - policy-engine\n  - agent-runtime\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 5\nresponsibilities:\n  - Validate transitions\n  - Dispatch bounded assignments\n  - Handle timeout and retry\nowns:\n  - Execution state\ndoes_not_own:\n  - Cannot perform agent reasoning\n  - Cannot redefine policy\ninputs: []\noutputs:\n  - Assignments\n  - State transitions\npermissions:\n  - Read contracts and decisions\n  - Write authoritative execution state\nrestrictions:\n  - Cannot perform agent reasoning\n  - Cannot redefine policy\nfailure_behaviour:\n  - Preserve state on dependency failure\n  - Prevent duplicate active execution\n---\n\n# Orchestrator\n\n## Purpose\n\nOwns and advances execution workflow state according to approved transitions.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Orchestrator\n\n## Purpose\n\nOwns and advances execution workflow state according to approved transitions.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -411,6 +490,7 @@
         "Deny safely when required policy is unavailable"
       ],
       "sourcePath": "specs/components/policy-engine.md",
+      "rawMarkdown": "---\nid: policy-engine\nname: Policy Engine\nentity_type: component\nplane: control\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: deterministic-system\ndescription: Evaluates mandatory rules for permission, data, model, workflow, and approval.\nowner: harness-platform\ntags:\n  - control\n  - component\ndepends_on: []\nconnects_to:\n  - orchestrator\n  - tool-gateway\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 6\nresponsibilities:\n  - Return policy decisions with rationale\n  - Apply deny-by-default controls\nowns:\n  - Policy decisions\ndoes_not_own:\n  - Cannot treat ordinary knowledge as mandatory policy\ninputs: []\noutputs:\n  - Allow, deny, or escalate decision\npermissions:\n  - Read approved policy versions\nrestrictions:\n  - Cannot treat ordinary knowledge as mandatory policy\nfailure_behaviour:\n  - Deny safely when required policy is unavailable\n---\n\n# Policy Engine\n\n## Purpose\n\nEvaluates mandatory rules for permission, data, model, workflow, and approval.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Policy Engine\n\n## Purpose\n\nEvaluates mandatory rules for permission, data, model, workflow, and approval.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -457,6 +537,7 @@
         "Remain unmerged when approval is absent"
       ],
       "sourcePath": "specs/components/pull-request.md",
+      "rawMarkdown": "---\nid: pull-request\nname: Pull Request\nentity_type: artifact\nplane: external\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: external\ndescription: Reviewable delivery artifact produced for a bounded engineering change.\nowner: harness-platform\ntags:\n  - external\n  - artifact\ndepends_on: []\nconnects_to:\n  - audit-store\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 11\nresponsibilities:\n  - Present code change and evidence\nowns:\n  - PR content\ndoes_not_own:\n  - Cannot be treated as production release\ninputs: []\noutputs:\n  - Reviewable delivery\npermissions:\n  - Be created in an authorised repository\nrestrictions:\n  - Cannot be treated as production release\nfailure_behaviour:\n  - Remain unmerged when approval is absent\n---\n\n# Pull Request\n\n## Purpose\n\nReviewable delivery artifact produced for a bounded engineering change.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Pull Request\n\n## Purpose\n\nReviewable delivery artifact produced for a bounded engineering change.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -506,6 +587,7 @@
         "Return insufficient-evidence status rather than guessing"
       ],
       "sourcePath": "specs/components/review-service.md",
+      "rawMarkdown": "---\nid: review-service\nname: Review Service\nentity_type: component\nplane: assurance\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: agent\ndescription: Reviews changes using fresh context and produces structured findings.\nowner: harness-platform\ntags:\n  - assurance\n  - component\ndepends_on: []\nconnects_to:\n  - pull-request\n  - audit-store\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 10\nresponsibilities:\n  - Evaluate against contract and evidence\n  - Separate blocking from advisory findings\nowns:\n  - Review result\ndoes_not_own:\n  - Cannot merge or release changes\ninputs: []\noutputs:\n  - Approval recommendation\n  - Findings\npermissions:\n  - Read approved artifacts\nrestrictions:\n  - Cannot merge or release changes\nfailure_behaviour:\n  - Return insufficient-evidence status rather than guessing\n---\n\n# Review Service\n\n## Purpose\n\nReviews changes using fresh context and produces structured findings.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Review Service\n\n## Purpose\n\nReviews changes using fresh context and produces structured findings.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -554,6 +636,7 @@
         "Escalate uncertain or conflicting classifications"
       ],
       "sourcePath": "specs/components/risk-classifier.md",
+      "rawMarkdown": "---\nid: risk-classifier\nname: Risk Classifier\nentity_type: component\nplane: control\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Classifies task risk and recommends the required workflow and approval gates.\nowner: harness-platform\ntags:\n  - control\n  - component\ndepends_on: []\nconnects_to:\n  - orchestrator\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 4\nresponsibilities:\n  - Apply deterministic rules\n  - Record rationale\n  - Escalate ambiguity\nowns:\n  - Risk assessment\ndoes_not_own:\n  - Cannot lower mandatory policy controls\ninputs: []\noutputs:\n  - Risk decision\npermissions:\n  - Read task contract and policy\nrestrictions:\n  - Cannot lower mandatory policy controls\nfailure_behaviour:\n  - Escalate uncertain or conflicting classifications\n---\n\n# Risk Classifier\n\n## Purpose\n\nClassifies task risk and recommends the required workflow and approval gates.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Risk Classifier\n\n## Purpose\n\nClassifies task risk and recommends the required workflow and approval gates.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -605,6 +688,7 @@
         "Destroy or quarantine compromised workspace"
       ],
       "sourcePath": "specs/components/sandbox.md",
+      "rawMarkdown": "---\nid: sandbox\nname: Sandbox\nentity_type: component\nplane: execution\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: deterministic-system\ndescription: Isolated environment for untrusted commands and generated code.\nowner: harness-platform\ntags:\n  - execution\n  - component\ndepends_on: []\nconnects_to:\n  - review-service\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 9\nresponsibilities:\n  - Isolate filesystem and process execution\n  - Apply resource and network limits\nowns:\n  - Ephemeral workspace\ndoes_not_own:\n  - No host access\n  - No unrestricted network\ninputs: []\noutputs:\n  - Command output\n  - Workspace artifacts\npermissions:\n  - Run approved commands within limits\nrestrictions:\n  - No host access\n  - No unrestricted network\nfailure_behaviour:\n  - Terminate on timeout\n  - Destroy or quarantine compromised workspace\n---\n\n# Sandbox\n\n## Purpose\n\nIsolated environment for untrusted commands and generated code.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Sandbox\n\n## Purpose\n\nIsolated environment for untrusted commands and generated code.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -651,6 +735,7 @@
         "Block execution when incomplete or unapproved"
       ],
       "sourcePath": "specs/components/task-contract.md",
+      "rawMarkdown": "---\nid: task-contract\nname: Task Contract\nentity_type: artifact\nplane: control\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Versioned agreement defining goal, scope, acceptance criteria, constraints, and risk.\nowner: harness-platform\ntags:\n  - control\n  - artifact\ndepends_on: []\nconnects_to:\n  - risk-classifier\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 3\nresponsibilities:\n  - Represent bounded authorised work\nowns:\n  - Contract versions\ndoes_not_own:\n  - Cannot grant permissions by itself\ninputs: []\noutputs:\n  - Approved task contract\npermissions:\n  - Be read by authorised workflow components\nrestrictions:\n  - Cannot grant permissions by itself\nfailure_behaviour:\n  - Block execution when incomplete or unapproved\n---\n\n# Task Contract\n\n## Purpose\n\nVersioned agreement defining goal, scope, acceptance criteria, constraints, and risk.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Task Contract\n\n## Purpose\n\nVersioned agreement defining goal, scope, acceptance criteria, constraints, and risk.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -701,6 +786,7 @@
         "Stop repeated violating calls"
       ],
       "sourcePath": "specs/components/tool-gateway.md",
+      "rawMarkdown": "---\nid: tool-gateway\nname: Tool Gateway\nentity_type: component\nplane: execution\nscope: mvp\nstatus: specified\nrisk: critical\nactor_type: deterministic-system\ndescription: Mediates every agent tool request against capability grants and policy.\nowner: harness-platform\ntags:\n  - execution\n  - component\ndepends_on: []\nconnects_to:\n  - sandbox\n  - audit-store\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 8\nresponsibilities:\n  - Validate tool calls\n  - Enforce limits\n  - Audit side effects\nowns:\n  - Tool invocation records\ndoes_not_own:\n  - Cannot bypass policy or grant scope\ninputs: []\noutputs:\n  - Approved tool response\npermissions:\n  - Invoke allowed downstream tools\nrestrictions:\n  - Cannot bypass policy or grant scope\nfailure_behaviour:\n  - Deny unknown operations\n  - Stop repeated violating calls\n---\n\n# Tool Gateway\n\n## Purpose\n\nMediates every agent tool request against capability grants and policy.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# Tool Gateway\n\n## Purpose\n\nMediates every agent tool request against capability grants and policy.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
@@ -747,6 +833,7 @@
         "Reject malformed or unauthenticated requests"
       ],
       "sourcePath": "specs/components/user-request.md",
+      "rawMarkdown": "---\nid: user-request\nname: User Request\nentity_type: actor\nplane: request\nscope: mvp\nstatus: specified\nrisk: low\nactor_type: human\ndescription: A business or engineering need submitted for controlled assessment.\nowner: requester\ntags:\n  - request\n  - actor\ndepends_on: []\nconnects_to:\n  - intake-service\nworkflow_id: bounded-engineering-ticket\nworkflow_order: 1\nresponsibilities:\n  - Provide the original intent and required outcome\nowns:\n  - Original request\ndoes_not_own:\n  - Cannot directly invoke production execution\ninputs: []\noutputs:\n  - Task Contract\npermissions:\n  - Submit a request\nrestrictions:\n  - Cannot directly invoke production execution\nfailure_behaviour:\n  - Reject malformed or unauthenticated requests\n---\n\n# User Request\n\n## Purpose\n\nA business or engineering need submitted for controlled assessment.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary.\n",
       "body": "# User Request\n\n## Purpose\n\nA business or engineering need submitted for controlled assessment.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     }
   ],
@@ -758,6 +845,94 @@
       "relations": [
         "connects_to",
         "workflow"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->agent-runtime",
+      "source": "azure-cloud-scope",
+      "target": "agent-runtime",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->audit-store",
+      "source": "azure-cloud-scope",
+      "target": "audit-store",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->intake-service",
+      "source": "azure-cloud-scope",
+      "target": "intake-service",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->orchestrator",
+      "source": "azure-cloud-scope",
+      "target": "orchestrator",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->policy-engine",
+      "source": "azure-cloud-scope",
+      "target": "policy-engine",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->pull-request",
+      "source": "azure-cloud-scope",
+      "target": "pull-request",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->review-service",
+      "source": "azure-cloud-scope",
+      "target": "review-service",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->risk-classifier",
+      "source": "azure-cloud-scope",
+      "target": "risk-classifier",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->sandbox",
+      "source": "azure-cloud-scope",
+      "target": "sandbox",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->task-contract",
+      "source": "azure-cloud-scope",
+      "target": "task-contract",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "azure-cloud-scope->user-request",
+      "source": "azure-cloud-scope",
+      "target": "user-request",
+      "relations": [
+        "connects_to"
       ]
     },
     {
@@ -1041,8 +1216,8 @@
     }
   ],
   "validation": {
-    "entityCount": 15,
-    "edgeCount": 32,
+    "entityCount": 16,
+    "edgeCount": 43,
     "workflowCount": 1
   }
 }

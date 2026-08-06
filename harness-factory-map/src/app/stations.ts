@@ -22,6 +22,16 @@ export const STATIONS: StationDefinition[] = [
   { id: 'learning-loop', label: 'Audit & Learning Loop', specId: 'audit-store', position: [-4, 0, 3], screenPosition: { left: '25%', top: '79%' }, color: '#ec4899', zone: 'learning' },
 ];
 
+export const CLOUD_SCOPE_STATION: StationDefinition = {
+  id: 'azure-cloud-scope',
+  label: 'Azure Cloud Scope MVP',
+  specId: 'azure-cloud-scope',
+  position: [0, 0, 0],
+  screenPosition: { left: '50%', top: '50%' },
+  color: '#3d7fb6',
+  zone: 'cloud architecture',
+};
+
 export const START_POSITION: [number, number, number] = [-8, 0, -5];
 
 export function stationForId(id: string): StationDefinition | undefined {

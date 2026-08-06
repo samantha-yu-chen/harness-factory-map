@@ -3,7 +3,9 @@ import mapJson from '../generated/map.json';
 import { FactoryFloor2D } from '../components/FactoryFloor2D';
 import { SpecDrawer } from '../components/SpecDrawer';
 import { TargetWorkflow } from '../components/TargetWorkflow';
-import { STATIONS, type StationDefinition } from './stations';
+import { AZURE_SCOPE_BY_STAGE } from './cloudScope';
+import { CLOUD_SCOPE_STATION, STATIONS, type StationDefinition } from './stations';
+import { TARGET_WORKFLOW } from './workflow';
 import type { GeneratedMap } from '../types/specification';
 
 const map = mapJson as GeneratedMap;
@@ -20,6 +22,9 @@ function App() {
   );
   const selectedEntity = selectedStation
     ? map.entities.find((entity) => entity.id === selectedStation.specId)
+    : undefined;
+  const selectedCloudScope = selectedStation
+    ? AZURE_SCOPE_BY_STAGE[TARGET_WORKFLOW.find((stage) => stage.stationIds.includes(selectedStation.id))?.id ?? '']
     : undefined;
   const isFinished = activeStep === STATIONS.length - 1;
   const progress = activeStep < 0 ? 0 : Math.round(((activeStep + 1) / STATIONS.length) * 100);
@@ -75,7 +80,12 @@ function App() {
       </header>
 
       <main className="game-layout">
-        <TargetWorkflow activeStep={activeStep} entities={map.entities} onStageSelect={openStation} />
+        <TargetWorkflow
+          activeStep={activeStep}
+          entities={map.entities}
+          onStageSelect={openStation}
+          onCloudScopeSelect={() => openStation(CLOUD_SCOPE_STATION)}
+        />
         <section className="scene-card" aria-label="Target workflow factory">
           <div className="scene-copy">
             <span className="kicker">Happy-path ticket run</span>
@@ -138,6 +148,7 @@ function App() {
         station={selectedStation}
         entity={selectedEntity}
         entities={map.entities}
+        cloudScope={selectedCloudScope}
         onClose={() => setSelectedStation(undefined)}
       />
     </div>

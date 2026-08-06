@@ -44,6 +44,7 @@ export interface SpecificationMetadata {
 
 export interface GeneratedEntity extends SpecificationMetadata {
   sourcePath: string;
+  rawMarkdown: string;
   body: string;
 }
 

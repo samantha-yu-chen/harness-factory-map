@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { MarkdownBody } from './MarkdownBody';
+import { buildEngineeringMarkdown } from '../app/markdownHandoff';
+import type { AzureStageScope } from '../app/cloudScope';
 import type { StationDefinition } from '../app/stations';
 import type { GeneratedEntity } from '../types/specification';
 
@@ -7,10 +9,12 @@ interface SpecDrawerProps {
   station: StationDefinition | undefined;
   entity: GeneratedEntity | undefined;
   entities: GeneratedEntity[];
+  cloudScope?: AzureStageScope;
   onClose: () => void;
 }
 
 type DrawerTab = 'technical' | 'boundary' | 'implementation' | 'markdown';
+type MarkdownView = 'preview' | 'source' | 'handoff';
 
 const tabs: { id: DrawerTab; label: string }[] = [
   { id: 'technical', label: 'Technical Spec' },
@@ -68,11 +72,22 @@ function ScopeAndDesign({ entity }: { entity: GeneratedEntity }) {
   );
 }
 
-export function SpecDrawer({ station, entity, entities, onClose }: SpecDrawerProps) {
+function downloadMarkdown(content: string, filename: string): void {
+  const url = URL.createObjectURL(new Blob([content], { type: 'text/markdown;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export function SpecDrawer({ station, entity, entities, cloudScope, onClose }: SpecDrawerProps) {
   const [activeTab, setActiveTab] = useState<DrawerTab>('technical');
+  const [markdownView, setMarkdownView] = useState<MarkdownView>('preview');
 
   useEffect(() => {
     setActiveTab('technical');
+    setMarkdownView('preview');
   }, [station?.id]);
 
   if (!station || !entity) return null;
@@ -146,7 +161,37 @@ export function SpecDrawer({ station, entity, entities, onClose }: SpecDrawerPro
 
       {activeTab === 'markdown' && (
         <div role="tabpanel" className="drawer-panel">
-          <MarkdownBody body={entity.body} />
+          <div className="markdown-handoff-header">
+            <div>
+              <span className="drawer-kicker">Engineering source area</span>
+              <p>Preview the safe rendering, inspect the exact source file, or download an implementation handoff.</p>
+            </div>
+            <div className="markdown-downloads">
+              <button type="button" onClick={() => downloadMarkdown(entity.rawMarkdown, `${entity.id}.md`)}>Download source</button>
+              <button type="button" onClick={() => downloadMarkdown(buildEngineeringMarkdown(entity, cloudScope), `${entity.id}-engineering-handoff.md`)}>Download handoff</button>
+            </div>
+          </div>
+          <div className="markdown-view-tabs" role="tablist" aria-label="Markdown file views">
+            {([
+              ['preview', 'Rendered preview'],
+              ['source', 'Source .md'],
+              ['handoff', 'Engineering handoff'],
+            ] as const).map(([id, label]) => (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={markdownView === id}
+                className={markdownView === id ? 'markdown-view-tab active' : 'markdown-view-tab'}
+                key={id}
+                onClick={() => setMarkdownView(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {markdownView === 'preview' && <MarkdownBody body={entity.body} />}
+          {markdownView === 'source' && <pre className="markdown-source">{entity.rawMarkdown}</pre>}
+          {markdownView === 'handoff' && <pre className="markdown-source">{buildEngineeringMarkdown(entity, cloudScope)}</pre>}
         </div>
       )}
       </aside>
