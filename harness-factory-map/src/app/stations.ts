@@ -19,6 +19,7 @@ export const STATIONS: StationDefinition[] = [
   { id: 'sandbox', label: 'Sandbox', specId: 'sandbox', position: [5, 0, 0], screenPosition: { left: '80%', top: '52%' }, color: '#16a34a', zone: 'execution' },
   { id: 'review-station', label: 'Review Station', specId: 'review-service', position: [2, 0, 3], screenPosition: { left: '63%', top: '79%' }, color: '#3b82f6', zone: 'delivery' },
   { id: 'delivery-dock', label: 'Delivery Dock', specId: 'pull-request', position: [5, 0, 3], screenPosition: { left: '80%', top: '79%' }, color: '#2563eb', zone: 'delivery' },
+  { id: 'learning-loop', label: 'Audit & Learning Loop', specId: 'audit-store', position: [-4, 0, 3], screenPosition: { left: '25%', top: '79%' }, color: '#ec4899', zone: 'learning' },
 ];
 
 export const START_POSITION: [number, number, number] = [-8, 0, -5];

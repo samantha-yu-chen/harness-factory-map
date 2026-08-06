@@ -10,7 +10,7 @@ import type { GeneratedMap } from '../src/types/specification';
 describe('presentation prototype smoke checks', () => {
   it('keeps every visible station linked to a Markdown entity', () => {
     const map = mapJson as GeneratedMap;
-    expect(STATIONS).toHaveLength(10);
+    expect(STATIONS).toHaveLength(11);
     expect(STATIONS.every((station) => map.entities.some((entity) => entity.id === station.specId))).toBe(true);
   });
 

@@ -22,6 +22,7 @@ export function FactoryFloor2D({ activeStationId, selectedStationId, activeStep,
       <div className="floor-zone zone-control">CONTROL PLANE</div>
       <div className="floor-zone zone-execution">EXECUTION</div>
       <div className="floor-zone zone-delivery">DELIVERY</div>
+      <div className="floor-zone zone-learning">LEARNING LOOP</div>
       <svg className="route-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <polyline points={STATIONS.map(point).join(' ')} fill="none" stroke="#f3ae4d" strokeDasharray="1.2 1.2" strokeWidth="0.45" />
       </svg>

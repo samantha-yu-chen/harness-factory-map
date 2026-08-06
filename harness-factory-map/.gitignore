@@ -7,3 +7,6 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Windows download metadata should never enter the repository.
+*:Zone.Identifier

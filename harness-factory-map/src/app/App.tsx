@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import mapJson from '../generated/map.json';
 import { FactoryFloor2D } from '../components/FactoryFloor2D';
 import { SpecDrawer } from '../components/SpecDrawer';
+import { TargetWorkflow } from '../components/TargetWorkflow';
 import { STATIONS, type StationDefinition } from './stations';
 import type { GeneratedMap } from '../types/specification';
 
@@ -57,7 +58,7 @@ function App() {
   const status = activeStep < 0
     ? 'Ready for a ticket'
     : isFinished
-      ? 'Ticket delivered to the Delivery Dock'
+    ? 'Delivered, audited, and ready for learning'
       : `Ticket paused at ${activeStation?.label}`;
 
   return (
@@ -74,7 +75,8 @@ function App() {
       </header>
 
       <main className="game-layout">
-        <section className="scene-card" aria-label="Isometric Harness Agent Factory">
+        <TargetWorkflow activeStep={activeStep} entities={map.entities} onStageSelect={openStation} />
+        <section className="scene-card" aria-label="Target workflow factory">
           <div className="scene-copy">
             <span className="kicker">Happy-path ticket run</span>
             <h2>Build, inspect, and deliver</h2>

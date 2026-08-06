@@ -78,7 +78,9 @@ export function SpecDrawer({ station, entity, entities, onClose }: SpecDrawerPro
   if (!station || !entity) return null;
 
   return (
-    <aside className="spec-drawer" aria-label="Station specification">
+    <>
+      <button type="button" className="spec-drawer-backdrop" onClick={onClose} aria-label="Close station specification" />
+      <aside className="spec-drawer" aria-label="Station specification">
       <div className="drawer-header">
         <div>
           <span className="drawer-kicker">Station specification</span>
@@ -147,6 +149,7 @@ export function SpecDrawer({ station, entity, entities, onClose }: SpecDrawerPro
           <MarkdownBody body={entity.body} />
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   );
 }
