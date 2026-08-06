@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import mapJson from '../generated/map.json';
-import { FactoryScene } from '../components/FactoryScene';
+import { FactoryFloor2D } from '../components/FactoryFloor2D';
 import { SpecDrawer } from '../components/SpecDrawer';
 import { STATIONS, type StationDefinition } from './stations';
 import type { GeneratedMap } from '../types/specification';
@@ -81,7 +81,7 @@ function App() {
             <p>Orbit the factory, click a station, or start the robot tour.</p>
           </div>
           <div className="scene-viewport">
-            <FactoryScene
+            <FactoryFloor2D
               activeStationId={activeStation?.id}
               selectedStationId={selectedStation?.id}
               activeStep={activeStep}
@@ -89,7 +89,7 @@ function App() {
             />
           </div>
           <div className="scene-footer">
-            <span>Drag to orbit · Scroll to zoom · Click a station for its spec</span>
+            <span>Click any station for its Markdown specification</span>
             <span className="progress-label">{progress}% complete</span>
           </div>
         </section>
