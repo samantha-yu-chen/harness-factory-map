@@ -148,15 +148,15 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 
 /* ---------- cost ---------- */
 .cost-bar { border-radius: 8px; display: flex; height: 34px; margin-bottom: 14px; overflow: hidden; }
-.cost-seg { align-items: center; color: #fff; display: flex; font-size: 0.62rem; font-weight: 800; justify-content: center; overflow: hidden; padding: 0 6px; white-space: nowrap; }
+.cost-seg { align-items: center; color: #fff; display: flex; font-size: 0.62rem; font-weight: 800; justify-content: center; min-width: 0; overflow: hidden; padding: 0 4px; text-overflow: ellipsis; white-space: nowrap; }
 .seg-azure { background: #2f4d8f; }
 .seg-factory { background: #a3441c; }
 .seg-runtime { background: #1d4ed8; }
 .cost-legend { display: grid; gap: 9px; list-style: none; margin: 0; padding: 0; }
 .cost-legend li { border-left: 3px solid var(--line); display: grid; gap: 1px; padding-left: 11px; }
-.cost-legend li:first-child { border-left-color: #2f4d8f; }
-.cost-legend li:nth-child(2) { border-left-color: #a3441c; }
-.cost-legend li:nth-child(3) { border-left-color: #1d4ed8; }
+.cost-legend .legend-azure { border-left-color: #2f4d8f; }
+.cost-legend .legend-factory { border-left-color: #a3441c; }
+.cost-legend .legend-runtime { border-left-color: #1d4ed8; }
 .cost-legend .cost-offbill { border-left-color: #6b748c; }
 .cost-legend strong { font-size: 0.78rem; }
 .cost-legend span { color: var(--ink-2); font-size: 0.76rem; font-weight: 700; }

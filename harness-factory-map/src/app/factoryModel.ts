@@ -188,6 +188,8 @@ function round(value: number): number {
 
 export interface CostBand {
   label: string;
+  short: string;
+  tone: 'azure' | 'factory' | 'runtime';
   low: number;
   high: number;
   note: string;
@@ -206,18 +208,24 @@ export const RUNTIME_RUN_USD = {
 export const COST_BANDS: CostBand[] = [
   {
     label: 'Azure infrastructure',
+    short: 'Infrastructure',
+    tone: 'azure',
     low: map.cost.monthlyUsdLow,
     high: map.cost.monthlyUsdHigh,
     note: `All ${STAGED_COMPONENTS.length} components, one non-production environment`,
   },
   {
     label: 'Factory model spend',
+    short: 'Factory',
+    tone: 'factory',
     low: round(FACTORY_RUN_USD.low * SOLUTIONS_PER_MONTH),
     high: round(FACTORY_RUN_USD.high * SOLUTIONS_PER_MONTH),
     note: `${SOLUTIONS_PER_MONTH} solutions built/month · $${FACTORY_RUN_USD.low.toFixed(2)}–${FACTORY_RUN_USD.high.toFixed(2)} each`,
   },
   {
     label: 'Runtime model spend',
+    short: 'Runtime',
+    tone: 'runtime',
     low: round(RUNTIME_RUN_USD.low * RUNS_PER_MONTH),
     high: round(RUNTIME_RUN_USD.high * RUNS_PER_MONTH),
     note: `${RUNS_PER_MONTH} published-agent runs/month · $${RUNTIME_RUN_USD.low.toFixed(2)}–${RUNTIME_RUN_USD.high.toFixed(2)} each`,

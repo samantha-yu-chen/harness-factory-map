@@ -76,16 +76,27 @@ function brainDomains(): string[] {
     .filter((element) => !element.includes(','));
 }
 
+// WHY: a segment narrow enough to clip its own label is worse than an unlabelled
+// one — the legend below carries every name, keyed by the same tone colour.
+const LABEL_MIN_SHARE = 0.13;
+
 function CostBar() {
   const total = COST_BANDS.reduce((sum, band) => sum + band.high, 0);
   return (
     <div className="cost-bar" role="img" aria-label="Share of monthly cost by layer">
-      {COST_BANDS.map((band) => (
-        <span key={band.label} className={`cost-seg seg-${band.label.split(' ')[0].toLowerCase()}`}
-          style={{ width: `${(band.high / total) * 100}%` }}>
-          {band.label}
-        </span>
-      ))}
+      {COST_BANDS.map((band) => {
+        const share = band.high / total;
+        return (
+          <span
+            key={band.label}
+            className={`cost-seg seg-${band.tone}`}
+            style={{ width: `${share * 100}%` }}
+            title={`${band.label} — ${usd(band.low)} to ${usd(band.high)} per month`}
+          >
+            {share >= LABEL_MIN_SHARE && band.short}
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -235,7 +246,7 @@ export function ExecutiveView({ activeStageId, onStageSelect, onComponentSelect 
           <CostBar />
           <ul className="cost-legend">
             {COST_BANDS.map((band) => (
-              <li key={band.label}>
+              <li key={band.label} className={`legend-${band.tone}`}>
                 <strong>{band.label}</strong>
                 <span>{usd(band.low)} – {usd(band.high)} / month</span>
                 <small>{band.note}</small>
