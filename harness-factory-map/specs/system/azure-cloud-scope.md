@@ -80,7 +80,9 @@ It does not own enterprise policy, invent permissions, replace human approval, o
 | Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |
 | Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |
 | Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |
-| Harness Agent Team execution | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Run finite workers, dispatch events, provide versioned images, and stage evidence. Workers do not own authoritative state. |
+| Build task-specific Agent | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Build, evaluate, and review the versioned Agent package. Build workers do not own policy or runtime state. |
+| Deliver task-specific Agent | Azure Container Registry; Azure Container Apps; Azure Cosmos DB for NoSQL | Publish the reviewed package version and hand off a launch reference. Delivery completion is not task completion. |
+| Agent carries out user task | Azure Container Apps; Azure Service Bus; Azure Blob Storage; Azure Cosmos DB for NoSQL | Run the delivered package against the approved task contract and return result/evidence. Runtime cannot mutate package, policy, or source data. |
 | Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |
 
 ## Enterprise data memory
@@ -109,15 +111,15 @@ Writes must be schema-versioned and attributable to an owner. Stale or unauthori
 
 1. Data owners publish approved documents to ADLS Gen2.
 2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.
-3. System check and bounded Agents request read-only retrieval with task and authorization context.
+3. System check and the delivered task-specific Agent request read-only retrieval with task and authorization context.
 4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.
-5. Cosmos DB stores the versioned operational context and decisions.
-6. Execution artifacts and audit evidence are staged separately from source documents.
+5. Cosmos DB stores the versioned operational context, delivery record, and runtime checkpoints.
+6. The delivered Agent executes the user task in a bounded runtime; artifacts and audit evidence are staged separately from source documents.
 7. Learning signals are appended to the evidence boundary for human-led improvement.
 
 ## Engineering acceptance criteria
 
-- [ ] Every target workflow section has a named Azure component, one accountable owner, and a written boundary.
+- [ ] Every target workflow section distinguishes Factory build, Agent delivery, Agent task execution, and learning with a named Azure component, one accountable owner, and a written boundary.
 - [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.
 - [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.
 - [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.

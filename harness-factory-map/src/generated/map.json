@@ -3,6 +3,134 @@
   "schemaId": "https://example.local/harness-factory-map/spec.schema.json",
   "entities": [
     {
+      "id": "agent-delivery",
+      "name": "Agent Delivery Dock",
+      "entity_type": "artifact",
+      "plane": "external",
+      "scope": "mvp",
+      "status": "specified",
+      "risk": "high",
+      "actor_type": "deterministic-system",
+      "description": "Versioned handoff record for a reviewed task-specific Agent package.",
+      "owner": "harness-platform",
+      "tags": [
+        "agent-factory",
+        "delivery",
+        "handoff"
+      ],
+      "depends_on": [
+        "agent-package",
+        "review-service"
+      ],
+      "connects_to": [
+        "agent-runtime",
+        "audit-store"
+      ],
+      "responsibilities": [
+        "Publish the reviewed Agent package version",
+        "Record the target runtime and handoff status",
+        "Make the delivery traceable to task, review, and policy evidence"
+      ],
+      "owns": [
+        "Delivery record"
+      ],
+      "does_not_own": [
+        "Agent runtime state",
+        "User task result",
+        "Production release approval outside the declared handoff"
+      ],
+      "inputs": [
+        "Reviewed Agent package",
+        "Review evidence",
+        "Delivery target"
+      ],
+      "outputs": [
+        "Versioned Agent handoff",
+        "Runtime launch reference"
+      ],
+      "permissions": [
+        "Publish an approved package version",
+        "Append delivery evidence"
+      ],
+      "restrictions": [
+        "Cannot deliver an unreviewed package",
+        "Cannot silently replace a delivered version"
+      ],
+      "failure_behaviour": [
+        "Keep delivery pending when evidence or target is missing",
+        "Preserve the previous delivered version when publishing fails"
+      ],
+      "sourcePath": "specs/components/agent-delivery.md",
+      "rawMarkdown": "---\nid: agent-delivery\nname: Agent Delivery Dock\nentity_type: artifact\nplane: external\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Versioned handoff record for a reviewed task-specific Agent package.\nowner: harness-platform\ntags:\n  - agent-factory\n  - delivery\n  - handoff\ndepends_on:\n  - agent-package\n  - review-service\nconnects_to:\n  - agent-runtime\n  - audit-store\nresponsibilities:\n  - Publish the reviewed Agent package version\n  - Record the target runtime and handoff status\n  - Make the delivery traceable to task, review, and policy evidence\nowns:\n  - Delivery record\ndoes_not_own:\n  - Agent runtime state\n  - User task result\n  - Production release approval outside the declared handoff\ninputs:\n  - Reviewed Agent package\n  - Review evidence\n  - Delivery target\noutputs:\n  - Versioned Agent handoff\n  - Runtime launch reference\npermissions:\n  - Publish an approved package version\n  - Append delivery evidence\nrestrictions:\n  - Cannot deliver an unreviewed package\n  - Cannot silently replace a delivered version\nfailure_behaviour:\n  - Keep delivery pending when evidence or target is missing\n  - Preserve the previous delivered version when publishing fails\n---\n\n# Agent Delivery Dock\n\n## Purpose\n\nThe Delivery Dock hands a reviewed task-specific Agent package to its bounded runtime. Delivery is the Factory outcome; it is not the same as completing the user's task.\n\n## Handoff boundary\n\nThe handoff contains the package version, task contract reference, policy decision reference, review evidence, runtime launch reference, and rollback or disable path. The runtime owns execution state after handoff. The Delivery Dock does not own runtime state or the user's result.\n\n## Acceptance criteria\n\n- [ ] Only a reviewed and policy-compatible Agent package can be delivered.\n- [ ] The handoff records package version, task contract, review evidence, target runtime, and owner.\n- [ ] The runtime can identify exactly which package version it is executing.\n- [ ] A failed publish leaves the last known delivered version unchanged.\n- [ ] Disable, rollback, and handoff status are attributable and auditable.\n- [ ] Delivery completion is shown separately from user task completion.\n",
+      "body": "# Agent Delivery Dock\n\n## Purpose\n\nThe Delivery Dock hands a reviewed task-specific Agent package to its bounded runtime. Delivery is the Factory outcome; it is not the same as completing the user's task.\n\n## Handoff boundary\n\nThe handoff contains the package version, task contract reference, policy decision reference, review evidence, runtime launch reference, and rollback or disable path. The runtime owns execution state after handoff. The Delivery Dock does not own runtime state or the user's result.\n\n## Acceptance criteria\n\n- [ ] Only a reviewed and policy-compatible Agent package can be delivered.\n- [ ] The handoff records package version, task contract, review evidence, target runtime, and owner.\n- [ ] The runtime can identify exactly which package version it is executing.\n- [ ] A failed publish leaves the last known delivered version unchanged.\n- [ ] Disable, rollback, and handoff status are attributable and auditable.\n- [ ] Delivery completion is shown separately from user task completion."
+    },
+    {
+      "id": "agent-package",
+      "name": "Task-Specific Agent Package",
+      "entity_type": "artifact",
+      "plane": "execution",
+      "scope": "mvp",
+      "status": "specified",
+      "risk": "high",
+      "actor_type": "deterministic-system",
+      "description": "Versioned package defining a task-specific Agent's role, tools, guardrails, memory references, and test profile.",
+      "owner": "harness-platform",
+      "tags": [
+        "agent-factory",
+        "artifact",
+        "delivery"
+      ],
+      "depends_on": [
+        "task-contract",
+        "policy-engine"
+      ],
+      "connects_to": [
+        "sandbox",
+        "review-service",
+        "agent-delivery",
+        "audit-store"
+      ],
+      "responsibilities": [
+        "Translate an approved task contract into an Agent package",
+        "Declare tools, guardrails, memory references, and evaluation cases",
+        "Produce a versioned build artifact for review and handoff"
+      ],
+      "owns": [
+        "Agent package manifest",
+        "Agent test profile"
+      ],
+      "does_not_own": [
+        "Enterprise policy authority",
+        "User data outside the declared task scope",
+        "Runtime execution state"
+      ],
+      "inputs": [
+        "Approved task contract",
+        "Policy decision",
+        "Approved retrieval references"
+      ],
+      "outputs": [
+        "Versioned task-specific Agent package",
+        "Build and evaluation manifest"
+      ],
+      "permissions": [
+        "Read the approved task contract and policy decision",
+        "Reference approved knowledge sources"
+      ],
+      "restrictions": [
+        "Cannot expand its own tools or permissions",
+        "Cannot write directly to enterprise source-of-truth data",
+        "Cannot be released without review evidence"
+      ],
+      "failure_behaviour": [
+        "Reject incomplete package manifests",
+        "Block release when guardrails or evaluation evidence are missing"
+      ],
+      "sourcePath": "specs/components/agent-package.md",
+      "rawMarkdown": "---\nid: agent-package\nname: Task-Specific Agent Package\nentity_type: artifact\nplane: execution\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Versioned package defining a task-specific Agent's role, tools, guardrails, memory references, and test profile.\nowner: harness-platform\ntags:\n  - agent-factory\n  - artifact\n  - delivery\ndepends_on:\n  - task-contract\n  - policy-engine\nconnects_to:\n  - sandbox\n  - review-service\n  - agent-delivery\n  - audit-store\nresponsibilities:\n  - Translate an approved task contract into an Agent package\n  - Declare tools, guardrails, memory references, and evaluation cases\n  - Produce a versioned build artifact for review and handoff\nowns:\n  - Agent package manifest\n  - Agent test profile\ndoes_not_own:\n  - Enterprise policy authority\n  - User data outside the declared task scope\n  - Runtime execution state\ninputs:\n  - Approved task contract\n  - Policy decision\n  - Approved retrieval references\noutputs:\n  - Versioned task-specific Agent package\n  - Build and evaluation manifest\npermissions:\n  - Read the approved task contract and policy decision\n  - Reference approved knowledge sources\nrestrictions:\n  - Cannot expand its own tools or permissions\n  - Cannot write directly to enterprise source-of-truth data\n  - Cannot be released without review evidence\nfailure_behaviour:\n  - Reject incomplete package manifests\n  - Block release when guardrails or evaluation evidence are missing\n---\n\n# Task-Specific Agent Package\n\n## Purpose\n\nThe Factory output is a versioned task-specific Agent package. It is not an unconstrained general-purpose Agent and it is not yet a running execution.\n\n## Package boundary\n\nThe package should declare the task role, system instructions, allowed tools, policy constraints, memory references, input/output contract, escalation path, evaluation cases, and version metadata. It may reference approved enterprise data through the RAG retrieval boundary; it must not copy unverified content into policy truth.\n\nThe package does not own enterprise policy, user data outside the task contract, runtime state, or the final task result.\n\n## Acceptance criteria\n\n- [ ] The package has a unique version and points to one approved task contract.\n- [ ] The package declares role, allowed tools, denied tools, input/output contract, and escalation path.\n- [ ] Every memory reference includes source identity, version, and access boundary.\n- [ ] The package cannot add permissions that are absent from the approved policy decision.\n- [ ] Sandbox evaluation covers the declared happy path and at least one denied or degraded path.\n- [ ] A review result and audit reference are required before delivery.\n- [ ] A runtime can execute the package without changing the package manifest.\n",
+      "body": "# Task-Specific Agent Package\n\n## Purpose\n\nThe Factory output is a versioned task-specific Agent package. It is not an unconstrained general-purpose Agent and it is not yet a running execution.\n\n## Package boundary\n\nThe package should declare the task role, system instructions, allowed tools, policy constraints, memory references, input/output contract, escalation path, evaluation cases, and version metadata. It may reference approved enterprise data through the RAG retrieval boundary; it must not copy unverified content into policy truth.\n\nThe package does not own enterprise policy, user data outside the task contract, runtime state, or the final task result.\n\n## Acceptance criteria\n\n- [ ] The package has a unique version and points to one approved task contract.\n- [ ] The package declares role, allowed tools, denied tools, input/output contract, and escalation path.\n- [ ] Every memory reference includes source identity, version, and access boundary.\n- [ ] The package cannot add permissions that are absent from the approved policy decision.\n- [ ] Sandbox evaluation covers the declared happy path and at least one denied or degraded path.\n- [ ] A review result and audit reference are required before delivery.\n- [ ] A runtime can execute the package without changing the package manifest."
+    },
+    {
       "id": "agent-runtime",
       "name": "Agent Runtime",
       "entity_type": "component",
@@ -174,8 +302,8 @@
         "Treat unavailable retrieval as an explicit degraded path, never as permission to guess"
       ],
       "sourcePath": "specs/system/azure-cloud-scope.md",
-      "rawMarkdown": "---\nid: azure-cloud-scope\nname: Azure Cloud Scope MVP\nentity_type: component\nplane: knowledge\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Proposed Azure placement and data-memory boundaries for the Harness Agent Factory presentation MVP.\nowner: cloud-platform\ntags:\n  - azure\n  - cloud-scope\n  - enterprise-memory\n  - rag\ndepends_on:\n  - policy-engine\n  - audit-store\nconnects_to:\n  - user-request\n  - intake-service\n  - task-contract\n  - risk-classifier\n  - orchestrator\n  - agent-runtime\n  - sandbox\n  - review-service\n  - pull-request\nresponsibilities:\n  - Define proposed Azure service placement for each target workflow section\n  - Separate enterprise source data, RAG retrieval, operational memory, and observability\n  - Keep cloud responsibilities bounded and attributable\nowns:\n  - Azure placement map\n  - Cloud boundary notes for the MVP\ndoes_not_own:\n  - Azure deployment or infrastructure provisioning\n  - Agent reasoning or production orchestration\n  - Enterprise policy authority\n  - External source-system integration\ninputs:\n  - Approved Markdown specifications\n  - Enterprise data classification and ownership decisions\noutputs:\n  - Cloud component placement\n  - Data memory and retrieval boundaries\n  - Engineering acceptance criteria\npermissions:\n  - Read approved specifications and architecture decisions\nrestrictions:\n  - No live Azure credentials or service calls in the presentation prototype\n  - RAG retrieval cannot approve work, grant permissions, or replace policy\n  - Agents cannot write directly to enterprise source-of-truth data\nfailure_behaviour:\n  - Block cloud design when a data owner or boundary is missing\n  - Treat unavailable retrieval as an explicit degraded path, never as permission to guess\n---\n\n# Azure Cloud Scope MVP\n\n## Purpose\n\nThis specification is the proposed Azure placement for the Harness Agent Factory. It is an engineering handoff for the next bounded implementation ticket, not a deployment manifest and not a production agent runtime.\n\nThe local prototype renders this document's concepts as a visual cloud-scope layer. The prototype does not connect to Azure.\n\n## System boundary\n\nThe cloud layer supports request intake, governed retrieval, task-contract persistence, deterministic routing, bounded execution, evidence capture, and learning signals.\n\nIt does not own enterprise policy, invent permissions, replace human approval, or allow an Agent to mutate enterprise source data directly.\n\n## Target workflow placement\n\n| Section | Proposed Azure components | Responsibility boundary |\n| --- | --- | --- |\n| User logs request | Azure Front Door Standard/Premium; Azure Container Apps | Public HTTPS/WAF entry and request normalization only. No agent execution. |\n| System check | Azure AI Search; Azure Data Lake Storage Gen2 | Read-only existing-solution retrieval over approved content. Search results are evidence, not approval. |\n| Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |\n| Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |\n| Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |\n| Harness Agent Team execution | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Run finite workers, dispatch events, provide versioned images, and stage evidence. Workers do not own authoritative state. |\n| Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |\n\n## Enterprise data memory\n\nThe phrase “enterprise memory” is split into three separate boundaries. There is no single unrestricted database that the Agent can query and update.\n\n### 1. Source-of-truth data lake — Azure Data Lake Storage Gen2\n\nUse ADLS Gen2 for raw and curated enterprise documents such as policies and procedures, legal documents, finance rules, procurement process, product knowledge, sales playbooks, templates, workflows, decisions, audit history, and approved data exports.\n\nData owners publish versioned content. Every document needs an owner, classification, effective date, source identity, and retention rule. Agents, RAG retrieval, and operational services do not write directly to this source boundary.\n\n### 2. RAG retrieval boundary — Azure AI Search\n\nAzure AI Search holds a derived text/vector/hybrid retrieval index built from approved source content. Retrieval should return source identity, document version, access-filter result, relevant passage, and citation metadata.\n\nThe search index is not the policy store. Retrieval can ground a response with approved, cited data, but it cannot approve a task, grant permissions, change a task contract, or make an execution decision. If retrieval is unavailable or confidence is insufficient, the workflow must make that condition visible and route to clarification or human review.\n\n### 3. Operational memory database — Azure Cosmos DB for NoSQL\n\nUse Cosmos DB for versioned task contracts, workflow context, approval records, memory pointers, idempotency keys, and execution checkpoints. This is the operational system of record for workflow data, not the source of enterprise knowledge.\n\nWrites must be schema-versioned and attributable to an owner. Stale or unauthorized updates are rejected. A task contract may reference retrieved evidence by source ID and version; it must not copy unverified retrieval into policy truth.\n\n## Data flow\n\n1. Data owners publish approved documents to ADLS Gen2.\n2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.\n3. System check and bounded Agents request read-only retrieval with task and authorization context.\n4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.\n5. Cosmos DB stores the versioned operational context and decisions.\n6. Execution artifacts and audit evidence are staged separately from source documents.\n7. Learning signals are appended to the evidence boundary for human-led improvement.\n\n## Engineering acceptance criteria\n\n- [ ] Every target workflow section has a named Azure component, one accountable owner, and a written boundary.\n- [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.\n- [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.\n- [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.\n- [ ] Cosmos DB is identified as the operational memory database for versioned workflow records, not enterprise policy truth.\n- [ ] Task-contract and workflow writes are schema-versioned, attributable, idempotent, and reject stale updates.\n- [ ] An unavailable or low-confidence retrieval result produces an explicit degraded path or human-review route.\n- [ ] Agent workers cannot write directly to ADLS source-of-truth data or bypass the policy boundary.\n- [ ] The local prototype remains free of Azure credentials, SDK calls, deployment files, and external API calls.\n- [ ] Each proposed service can be replaced without changing the Markdown component boundaries or acceptance criteria.\n\n## Non-goals for this MVP\n\n- Provisioning Azure resources, VNets, private endpoints, RBAC assignments, or CI/CD.\n- Implementing live RAG, embeddings, an LLM, connectors, or external enterprise systems.\n- Defining production retention, capacity, cost, disaster recovery, or compliance controls.\n- Allowing an Agent to autonomously update policies, indexes, source data, or its own permissions.\n",
-      "body": "# Azure Cloud Scope MVP\n\n## Purpose\n\nThis specification is the proposed Azure placement for the Harness Agent Factory. It is an engineering handoff for the next bounded implementation ticket, not a deployment manifest and not a production agent runtime.\n\nThe local prototype renders this document's concepts as a visual cloud-scope layer. The prototype does not connect to Azure.\n\n## System boundary\n\nThe cloud layer supports request intake, governed retrieval, task-contract persistence, deterministic routing, bounded execution, evidence capture, and learning signals.\n\nIt does not own enterprise policy, invent permissions, replace human approval, or allow an Agent to mutate enterprise source data directly.\n\n## Target workflow placement\n\n| Section | Proposed Azure components | Responsibility boundary |\n| --- | --- | --- |\n| User logs request | Azure Front Door Standard/Premium; Azure Container Apps | Public HTTPS/WAF entry and request normalization only. No agent execution. |\n| System check | Azure AI Search; Azure Data Lake Storage Gen2 | Read-only existing-solution retrieval over approved content. Search results are evidence, not approval. |\n| Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |\n| Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |\n| Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |\n| Harness Agent Team execution | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Run finite workers, dispatch events, provide versioned images, and stage evidence. Workers do not own authoritative state. |\n| Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |\n\n## Enterprise data memory\n\nThe phrase “enterprise memory” is split into three separate boundaries. There is no single unrestricted database that the Agent can query and update.\n\n### 1. Source-of-truth data lake — Azure Data Lake Storage Gen2\n\nUse ADLS Gen2 for raw and curated enterprise documents such as policies and procedures, legal documents, finance rules, procurement process, product knowledge, sales playbooks, templates, workflows, decisions, audit history, and approved data exports.\n\nData owners publish versioned content. Every document needs an owner, classification, effective date, source identity, and retention rule. Agents, RAG retrieval, and operational services do not write directly to this source boundary.\n\n### 2. RAG retrieval boundary — Azure AI Search\n\nAzure AI Search holds a derived text/vector/hybrid retrieval index built from approved source content. Retrieval should return source identity, document version, access-filter result, relevant passage, and citation metadata.\n\nThe search index is not the policy store. Retrieval can ground a response with approved, cited data, but it cannot approve a task, grant permissions, change a task contract, or make an execution decision. If retrieval is unavailable or confidence is insufficient, the workflow must make that condition visible and route to clarification or human review.\n\n### 3. Operational memory database — Azure Cosmos DB for NoSQL\n\nUse Cosmos DB for versioned task contracts, workflow context, approval records, memory pointers, idempotency keys, and execution checkpoints. This is the operational system of record for workflow data, not the source of enterprise knowledge.\n\nWrites must be schema-versioned and attributable to an owner. Stale or unauthorized updates are rejected. A task contract may reference retrieved evidence by source ID and version; it must not copy unverified retrieval into policy truth.\n\n## Data flow\n\n1. Data owners publish approved documents to ADLS Gen2.\n2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.\n3. System check and bounded Agents request read-only retrieval with task and authorization context.\n4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.\n5. Cosmos DB stores the versioned operational context and decisions.\n6. Execution artifacts and audit evidence are staged separately from source documents.\n7. Learning signals are appended to the evidence boundary for human-led improvement.\n\n## Engineering acceptance criteria\n\n- [ ] Every target workflow section has a named Azure component, one accountable owner, and a written boundary.\n- [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.\n- [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.\n- [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.\n- [ ] Cosmos DB is identified as the operational memory database for versioned workflow records, not enterprise policy truth.\n- [ ] Task-contract and workflow writes are schema-versioned, attributable, idempotent, and reject stale updates.\n- [ ] An unavailable or low-confidence retrieval result produces an explicit degraded path or human-review route.\n- [ ] Agent workers cannot write directly to ADLS source-of-truth data or bypass the policy boundary.\n- [ ] The local prototype remains free of Azure credentials, SDK calls, deployment files, and external API calls.\n- [ ] Each proposed service can be replaced without changing the Markdown component boundaries or acceptance criteria.\n\n## Non-goals for this MVP\n\n- Provisioning Azure resources, VNets, private endpoints, RBAC assignments, or CI/CD.\n- Implementing live RAG, embeddings, an LLM, connectors, or external enterprise systems.\n- Defining production retention, capacity, cost, disaster recovery, or compliance controls.\n- Allowing an Agent to autonomously update policies, indexes, source data, or its own permissions."
+      "rawMarkdown": "---\nid: azure-cloud-scope\nname: Azure Cloud Scope MVP\nentity_type: component\nplane: knowledge\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Proposed Azure placement and data-memory boundaries for the Harness Agent Factory presentation MVP.\nowner: cloud-platform\ntags:\n  - azure\n  - cloud-scope\n  - enterprise-memory\n  - rag\ndepends_on:\n  - policy-engine\n  - audit-store\nconnects_to:\n  - user-request\n  - intake-service\n  - task-contract\n  - risk-classifier\n  - orchestrator\n  - agent-runtime\n  - sandbox\n  - review-service\n  - pull-request\nresponsibilities:\n  - Define proposed Azure service placement for each target workflow section\n  - Separate enterprise source data, RAG retrieval, operational memory, and observability\n  - Keep cloud responsibilities bounded and attributable\nowns:\n  - Azure placement map\n  - Cloud boundary notes for the MVP\ndoes_not_own:\n  - Azure deployment or infrastructure provisioning\n  - Agent reasoning or production orchestration\n  - Enterprise policy authority\n  - External source-system integration\ninputs:\n  - Approved Markdown specifications\n  - Enterprise data classification and ownership decisions\noutputs:\n  - Cloud component placement\n  - Data memory and retrieval boundaries\n  - Engineering acceptance criteria\npermissions:\n  - Read approved specifications and architecture decisions\nrestrictions:\n  - No live Azure credentials or service calls in the presentation prototype\n  - RAG retrieval cannot approve work, grant permissions, or replace policy\n  - Agents cannot write directly to enterprise source-of-truth data\nfailure_behaviour:\n  - Block cloud design when a data owner or boundary is missing\n  - Treat unavailable retrieval as an explicit degraded path, never as permission to guess\n---\n\n# Azure Cloud Scope MVP\n\n## Purpose\n\nThis specification is the proposed Azure placement for the Harness Agent Factory. It is an engineering handoff for the next bounded implementation ticket, not a deployment manifest and not a production agent runtime.\n\nThe local prototype renders this document's concepts as a visual cloud-scope layer. The prototype does not connect to Azure.\n\n## System boundary\n\nThe cloud layer supports request intake, governed retrieval, task-contract persistence, deterministic routing, bounded execution, evidence capture, and learning signals.\n\nIt does not own enterprise policy, invent permissions, replace human approval, or allow an Agent to mutate enterprise source data directly.\n\n## Target workflow placement\n\n| Section | Proposed Azure components | Responsibility boundary |\n| --- | --- | --- |\n| User logs request | Azure Front Door Standard/Premium; Azure Container Apps | Public HTTPS/WAF entry and request normalization only. No agent execution. |\n| System check | Azure AI Search; Azure Data Lake Storage Gen2 | Read-only existing-solution retrieval over approved content. Search results are evidence, not approval. |\n| Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |\n| Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |\n| Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |\n| Build task-specific Agent | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Build, evaluate, and review the versioned Agent package. Build workers do not own policy or runtime state. |\n| Deliver task-specific Agent | Azure Container Registry; Azure Container Apps; Azure Cosmos DB for NoSQL | Publish the reviewed package version and hand off a launch reference. Delivery completion is not task completion. |\n| Agent carries out user task | Azure Container Apps; Azure Service Bus; Azure Blob Storage; Azure Cosmos DB for NoSQL | Run the delivered package against the approved task contract and return result/evidence. Runtime cannot mutate package, policy, or source data. |\n| Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |\n\n## Enterprise data memory\n\nThe phrase “enterprise memory” is split into three separate boundaries. There is no single unrestricted database that the Agent can query and update.\n\n### 1. Source-of-truth data lake — Azure Data Lake Storage Gen2\n\nUse ADLS Gen2 for raw and curated enterprise documents such as policies and procedures, legal documents, finance rules, procurement process, product knowledge, sales playbooks, templates, workflows, decisions, audit history, and approved data exports.\n\nData owners publish versioned content. Every document needs an owner, classification, effective date, source identity, and retention rule. Agents, RAG retrieval, and operational services do not write directly to this source boundary.\n\n### 2. RAG retrieval boundary — Azure AI Search\n\nAzure AI Search holds a derived text/vector/hybrid retrieval index built from approved source content. Retrieval should return source identity, document version, access-filter result, relevant passage, and citation metadata.\n\nThe search index is not the policy store. Retrieval can ground a response with approved, cited data, but it cannot approve a task, grant permissions, change a task contract, or make an execution decision. If retrieval is unavailable or confidence is insufficient, the workflow must make that condition visible and route to clarification or human review.\n\n### 3. Operational memory database — Azure Cosmos DB for NoSQL\n\nUse Cosmos DB for versioned task contracts, workflow context, approval records, memory pointers, idempotency keys, and execution checkpoints. This is the operational system of record for workflow data, not the source of enterprise knowledge.\n\nWrites must be schema-versioned and attributable to an owner. Stale or unauthorized updates are rejected. A task contract may reference retrieved evidence by source ID and version; it must not copy unverified retrieval into policy truth.\n\n## Data flow\n\n1. Data owners publish approved documents to ADLS Gen2.\n2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.\n3. System check and the delivered task-specific Agent request read-only retrieval with task and authorization context.\n4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.\n5. Cosmos DB stores the versioned operational context, delivery record, and runtime checkpoints.\n6. The delivered Agent executes the user task in a bounded runtime; artifacts and audit evidence are staged separately from source documents.\n7. Learning signals are appended to the evidence boundary for human-led improvement.\n\n## Engineering acceptance criteria\n\n- [ ] Every target workflow section distinguishes Factory build, Agent delivery, Agent task execution, and learning with a named Azure component, one accountable owner, and a written boundary.\n- [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.\n- [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.\n- [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.\n- [ ] Cosmos DB is identified as the operational memory database for versioned workflow records, not enterprise policy truth.\n- [ ] Task-contract and workflow writes are schema-versioned, attributable, idempotent, and reject stale updates.\n- [ ] An unavailable or low-confidence retrieval result produces an explicit degraded path or human-review route.\n- [ ] Agent workers cannot write directly to ADLS source-of-truth data or bypass the policy boundary.\n- [ ] The local prototype remains free of Azure credentials, SDK calls, deployment files, and external API calls.\n- [ ] Each proposed service can be replaced without changing the Markdown component boundaries or acceptance criteria.\n\n## Non-goals for this MVP\n\n- Provisioning Azure resources, VNets, private endpoints, RBAC assignments, or CI/CD.\n- Implementing live RAG, embeddings, an LLM, connectors, or external enterprise systems.\n- Defining production retention, capacity, cost, disaster recovery, or compliance controls.\n- Allowing an Agent to autonomously update policies, indexes, source data, or its own permissions.\n",
+      "body": "# Azure Cloud Scope MVP\n\n## Purpose\n\nThis specification is the proposed Azure placement for the Harness Agent Factory. It is an engineering handoff for the next bounded implementation ticket, not a deployment manifest and not a production agent runtime.\n\nThe local prototype renders this document's concepts as a visual cloud-scope layer. The prototype does not connect to Azure.\n\n## System boundary\n\nThe cloud layer supports request intake, governed retrieval, task-contract persistence, deterministic routing, bounded execution, evidence capture, and learning signals.\n\nIt does not own enterprise policy, invent permissions, replace human approval, or allow an Agent to mutate enterprise source data directly.\n\n## Target workflow placement\n\n| Section | Proposed Azure components | Responsibility boundary |\n| --- | --- | --- |\n| User logs request | Azure Front Door Standard/Premium; Azure Container Apps | Public HTTPS/WAF entry and request normalization only. No agent execution. |\n| System check | Azure AI Search; Azure Data Lake Storage Gen2 | Read-only existing-solution retrieval over approved content. Search results are evidence, not approval. |\n| Problem intake & grill-me | Azure Container Apps; Azure Cosmos DB for NoSQL | Clarify the problem and persist versioned task contracts. No governance approval. |\n| Evaluate & decide | Azure Functions; Azure Service Bus | Apply deterministic risk rules and route the decision event. No permission expansion. |\n| Governance approval | Microsoft Entra ID; Azure Key Vault; Azure Container Apps | Supply identity context, protect secrets, and expose a deny-by-default policy boundary. Human accountability remains explicit. |\n| Build task-specific Agent | Azure Container Apps Jobs; Azure Service Bus; Azure Container Registry; Azure Blob Storage | Build, evaluate, and review the versioned Agent package. Build workers do not own policy or runtime state. |\n| Deliver task-specific Agent | Azure Container Registry; Azure Container Apps; Azure Cosmos DB for NoSQL | Publish the reviewed package version and hand off a launch reference. Delivery completion is not task completion. |\n| Agent carries out user task | Azure Container Apps; Azure Service Bus; Azure Blob Storage; Azure Cosmos DB for NoSQL | Run the delivered package against the approved task contract and return result/evidence. Runtime cannot mutate package, policy, or source data. |\n| Loop engineering | Azure Data Lake Storage Gen2; Azure Monitor / Log Analytics; Azure Key Vault | Retain learning evidence and operational signals. No autonomous policy or Agent mutation. |\n\n## Enterprise data memory\n\nThe phrase “enterprise memory” is split into three separate boundaries. There is no single unrestricted database that the Agent can query and update.\n\n### 1. Source-of-truth data lake — Azure Data Lake Storage Gen2\n\nUse ADLS Gen2 for raw and curated enterprise documents such as policies and procedures, legal documents, finance rules, procurement process, product knowledge, sales playbooks, templates, workflows, decisions, audit history, and approved data exports.\n\nData owners publish versioned content. Every document needs an owner, classification, effective date, source identity, and retention rule. Agents, RAG retrieval, and operational services do not write directly to this source boundary.\n\n### 2. RAG retrieval boundary — Azure AI Search\n\nAzure AI Search holds a derived text/vector/hybrid retrieval index built from approved source content. Retrieval should return source identity, document version, access-filter result, relevant passage, and citation metadata.\n\nThe search index is not the policy store. Retrieval can ground a response with approved, cited data, but it cannot approve a task, grant permissions, change a task contract, or make an execution decision. If retrieval is unavailable or confidence is insufficient, the workflow must make that condition visible and route to clarification or human review.\n\n### 3. Operational memory database — Azure Cosmos DB for NoSQL\n\nUse Cosmos DB for versioned task contracts, workflow context, approval records, memory pointers, idempotency keys, and execution checkpoints. This is the operational system of record for workflow data, not the source of enterprise knowledge.\n\nWrites must be schema-versioned and attributable to an owner. Stale or unauthorized updates are rejected. A task contract may reference retrieved evidence by source ID and version; it must not copy unverified retrieval into policy truth.\n\n## Data flow\n\n1. Data owners publish approved documents to ADLS Gen2.\n2. A governed indexing process creates or refreshes Azure AI Search indexes with source and access metadata.\n3. System check and the delivered task-specific Agent request read-only retrieval with task and authorization context.\n4. Retrieved passages return citations and are attached to the task contract or evidence record by reference.\n5. Cosmos DB stores the versioned operational context, delivery record, and runtime checkpoints.\n6. The delivered Agent executes the user task in a bounded runtime; artifacts and audit evidence are staged separately from source documents.\n7. Learning signals are appended to the evidence boundary for human-led improvement.\n\n## Engineering acceptance criteria\n\n- [ ] Every target workflow section distinguishes Factory build, Agent delivery, Agent task execution, and learning with a named Azure component, one accountable owner, and a written boundary.\n- [ ] ADLS Gen2 is identified as enterprise source-of-truth data storage; source ownership, classification, version, and retention are required.\n- [ ] Azure AI Search is identified as a derived RAG retrieval index and returns source/version/citation metadata.\n- [ ] Azure AI Search cannot approve work, grant permissions, or mutate policy data.\n- [ ] Cosmos DB is identified as the operational memory database for versioned workflow records, not enterprise policy truth.\n- [ ] Task-contract and workflow writes are schema-versioned, attributable, idempotent, and reject stale updates.\n- [ ] An unavailable or low-confidence retrieval result produces an explicit degraded path or human-review route.\n- [ ] Agent workers cannot write directly to ADLS source-of-truth data or bypass the policy boundary.\n- [ ] The local prototype remains free of Azure credentials, SDK calls, deployment files, and external API calls.\n- [ ] Each proposed service can be replaced without changing the Markdown component boundaries or acceptance criteria.\n\n## Non-goals for this MVP\n\n- Provisioning Azure resources, VNets, private endpoints, RBAC assignments, or CI/CD.\n- Implementing live RAG, embeddings, an LLM, connectors, or external enterprise systems.\n- Defining production retention, capacity, cost, disaster recovery, or compliance controls.\n- Allowing an Agent to autonomously update policies, indexes, source data, or its own permissions."
     },
     {
       "id": "bounded-engineering-ticket",
@@ -739,6 +867,78 @@
       "body": "# Task Contract\n\n## Purpose\n\nVersioned agreement defining goal, scope, acceptance criteria, constraints, and risk.\n\n## Initial design note\n\nThis is a first-pass specification. Later tickets should expand contracts, data ownership, permissions, failure behaviour, capacity, observability, and acceptance tests without changing this component's core boundary."
     },
     {
+      "id": "task-specific-agent-factory",
+      "name": "Task-Specific Agent Factory",
+      "entity_type": "component",
+      "plane": "control",
+      "scope": "mvp",
+      "status": "specified",
+      "risk": "high",
+      "actor_type": "deterministic-system",
+      "description": "Factory workflow that builds and delivers a bounded Agent for a specific user task, then hands execution to the Agent runtime.",
+      "owner": "harness-platform",
+      "tags": [
+        "agent-factory",
+        "build-loop",
+        "runtime-loop"
+      ],
+      "depends_on": [
+        "user-request",
+        "intake-service",
+        "task-contract",
+        "risk-classifier",
+        "policy-engine",
+        "agent-package",
+        "agent-delivery"
+      ],
+      "connects_to": [
+        "orchestrator",
+        "agent-runtime",
+        "sandbox",
+        "review-service",
+        "audit-store"
+      ],
+      "responsibilities": [
+        "Intake and qualify a user task",
+        "Build a task-specific Agent package within approved boundaries",
+        "Validate, review, and deliver the package",
+        "Hand the delivered package to the Agent runtime for task execution",
+        "Capture outcome evidence for human-led improvement"
+      ],
+      "owns": [
+        "Factory build and delivery trace"
+      ],
+      "does_not_own": [
+        "General enterprise policy authority",
+        "Unbounded Agent autonomy",
+        "The user's task result after runtime handoff"
+      ],
+      "inputs": [
+        "User task request",
+        "Approved enterprise knowledge references"
+      ],
+      "outputs": [
+        "Delivered task-specific Agent",
+        "Agent task result and evidence"
+      ],
+      "permissions": [
+        "Coordinate bounded Factory stages",
+        "Read and attach approved evidence"
+      ],
+      "restrictions": [
+        "No live external service execution in the presentation MVP",
+        "No Agent may expand its own scope or permissions",
+        "Delivery and task completion must remain separate statuses"
+      ],
+      "failure_behaviour": [
+        "Stop build on missing contract, policy, or evidence",
+        "Route ambiguous tasks to human clarification or review"
+      ],
+      "sourcePath": "specs/system/task-specific-agent-factory.md",
+      "rawMarkdown": "---\nid: task-specific-agent-factory\nname: Task-Specific Agent Factory\nentity_type: component\nplane: control\nscope: mvp\nstatus: specified\nrisk: high\nactor_type: deterministic-system\ndescription: Factory workflow that builds and delivers a bounded Agent for a specific user task, then hands execution to the Agent runtime.\nowner: harness-platform\ntags:\n  - agent-factory\n  - build-loop\n  - runtime-loop\ndepends_on:\n  - user-request\n  - intake-service\n  - task-contract\n  - risk-classifier\n  - policy-engine\n  - agent-package\n  - agent-delivery\nconnects_to:\n  - orchestrator\n  - agent-runtime\n  - sandbox\n  - review-service\n  - audit-store\nresponsibilities:\n  - Intake and qualify a user task\n  - Build a task-specific Agent package within approved boundaries\n  - Validate, review, and deliver the package\n  - Hand the delivered package to the Agent runtime for task execution\n  - Capture outcome evidence for human-led improvement\nowns:\n  - Factory build and delivery trace\ndoes_not_own:\n  - General enterprise policy authority\n  - Unbounded Agent autonomy\n  - The user's task result after runtime handoff\ninputs:\n  - User task request\n  - Approved enterprise knowledge references\noutputs:\n  - Delivered task-specific Agent\n  - Agent task result and evidence\npermissions:\n  - Coordinate bounded Factory stages\n  - Read and attach approved evidence\nrestrictions:\n  - No live external service execution in the presentation MVP\n  - No Agent may expand its own scope or permissions\n  - Delivery and task completion must remain separate statuses\nfailure_behaviour:\n  - Stop build on missing contract, policy, or evidence\n  - Route ambiguous tasks to human clarification or review\n---\n\n# Task-Specific Agent Factory\n\n## Outcome\n\nThe Factory exists to build and deliver an Agent that is specific to a user's task. The Agent then carries out that task under the approved contract and returns a result with evidence.\n\nThe Factory outcome is **a delivered task-specific Agent**, not a pull request. A pull request may be one possible artifact produced by an Agent, but it is not the universal Factory output.\n\n## Build loop\n\n1. Capture the user's task and check for an existing suitable Agent.\n2. Clarify the problem, success criteria, risk, owner, and constraints.\n3. Choose reuse, Harness Agent Team composition, or a dedicated task-specific Agent.\n4. Obtain governance approval for the required scope and permissions.\n5. Build a versioned Agent package with role, tools, guardrails, approved memory references, and evaluation cases.\n6. Test in an isolated sandbox and review the evidence.\n7. Deliver the reviewed package to a bounded Agent runtime.\n\n## Runtime loop after handoff\n\n1. The runtime starts the delivered package against the approved task contract.\n2. The Agent retrieves approved context through the RAG boundary and cites its sources.\n3. The Agent carries out the user task using only granted tools and sandbox limits.\n4. The runtime returns a result, artifacts, usage, and evidence.\n5. The Factory records outcome and feedback for human-led improvement.\n\n## Boundary between Factory and Agent runtime\n\n| Boundary | Factory owns | Agent runtime owns |\n| --- | --- | --- |\n| Before handoff | Task contract, package version, policy compatibility, review evidence, delivery record | Nothing authoritative |\n| During task run | Package definition and delivery trace | Execution state, tool calls, task result, usage, and runtime evidence |\n| After task run | Outcome review, learning signals, package improvement proposal | No autonomous policy or permission changes |\n\n## Acceptance criteria\n\n- [ ] The UI visibly distinguishes Factory build/delivery from post-delivery Agent execution.\n- [ ] A task-specific Agent package has a version, task contract, policy decision, tool boundary, memory references, and evaluation evidence.\n- [ ] The delivery record identifies the exact package version handed to the runtime.\n- [ ] Runtime execution cannot modify the package, policy, or enterprise source-of-truth data.\n- [ ] A task result is not marked complete merely because an Agent package was delivered.\n- [ ] Results and evidence are attributable to the delivered package version and task.\n- [ ] Failure, clarification, review, disable, and rollback paths remain visible.\n- [ ] The local prototype simulates these states without connecting to real Agents or Azure services.\n",
+      "body": "# Task-Specific Agent Factory\n\n## Outcome\n\nThe Factory exists to build and deliver an Agent that is specific to a user's task. The Agent then carries out that task under the approved contract and returns a result with evidence.\n\nThe Factory outcome is **a delivered task-specific Agent**, not a pull request. A pull request may be one possible artifact produced by an Agent, but it is not the universal Factory output.\n\n## Build loop\n\n1. Capture the user's task and check for an existing suitable Agent.\n2. Clarify the problem, success criteria, risk, owner, and constraints.\n3. Choose reuse, Harness Agent Team composition, or a dedicated task-specific Agent.\n4. Obtain governance approval for the required scope and permissions.\n5. Build a versioned Agent package with role, tools, guardrails, approved memory references, and evaluation cases.\n6. Test in an isolated sandbox and review the evidence.\n7. Deliver the reviewed package to a bounded Agent runtime.\n\n## Runtime loop after handoff\n\n1. The runtime starts the delivered package against the approved task contract.\n2. The Agent retrieves approved context through the RAG boundary and cites its sources.\n3. The Agent carries out the user task using only granted tools and sandbox limits.\n4. The runtime returns a result, artifacts, usage, and evidence.\n5. The Factory records outcome and feedback for human-led improvement.\n\n## Boundary between Factory and Agent runtime\n\n| Boundary | Factory owns | Agent runtime owns |\n| --- | --- | --- |\n| Before handoff | Task contract, package version, policy compatibility, review evidence, delivery record | Nothing authoritative |\n| During task run | Package definition and delivery trace | Execution state, tool calls, task result, usage, and runtime evidence |\n| After task run | Outcome review, learning signals, package improvement proposal | No autonomous policy or permission changes |\n\n## Acceptance criteria\n\n- [ ] The UI visibly distinguishes Factory build/delivery from post-delivery Agent execution.\n- [ ] A task-specific Agent package has a version, task contract, policy decision, tool boundary, memory references, and evaluation evidence.\n- [ ] The delivery record identifies the exact package version handed to the runtime.\n- [ ] Runtime execution cannot modify the package, policy, or enterprise source-of-truth data.\n- [ ] A task result is not marked complete merely because an Agent package was delivered.\n- [ ] Results and evidence are attributable to the delivered package version and task.\n- [ ] Failure, clarification, review, disable, and rollback paths remain visible.\n- [ ] The local prototype simulates these states without connecting to real Agents or Azure services."
+    },
+    {
       "id": "tool-gateway",
       "name": "Tool Gateway",
       "entity_type": "component",
@@ -838,6 +1038,86 @@
     }
   ],
   "edges": [
+    {
+      "id": "agent-delivery->agent-package",
+      "source": "agent-delivery",
+      "target": "agent-package",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "agent-delivery->agent-runtime",
+      "source": "agent-delivery",
+      "target": "agent-runtime",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "agent-delivery->audit-store",
+      "source": "agent-delivery",
+      "target": "audit-store",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "agent-delivery->review-service",
+      "source": "agent-delivery",
+      "target": "review-service",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "agent-package->agent-delivery",
+      "source": "agent-package",
+      "target": "agent-delivery",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "agent-package->audit-store",
+      "source": "agent-package",
+      "target": "audit-store",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "agent-package->policy-engine",
+      "source": "agent-package",
+      "target": "policy-engine",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "agent-package->review-service",
+      "source": "agent-package",
+      "target": "review-service",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "agent-package->sandbox",
+      "source": "agent-package",
+      "target": "sandbox",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "agent-package->task-contract",
+      "source": "agent-package",
+      "target": "task-contract",
+      "relations": [
+        "depends_on"
+      ]
+    },
     {
       "id": "agent-runtime->tool-gateway",
       "source": "agent-runtime",
@@ -1167,6 +1447,102 @@
       ]
     },
     {
+      "id": "task-specific-agent-factory->agent-delivery",
+      "source": "task-specific-agent-factory",
+      "target": "agent-delivery",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->agent-package",
+      "source": "task-specific-agent-factory",
+      "target": "agent-package",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->agent-runtime",
+      "source": "task-specific-agent-factory",
+      "target": "agent-runtime",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->audit-store",
+      "source": "task-specific-agent-factory",
+      "target": "audit-store",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->intake-service",
+      "source": "task-specific-agent-factory",
+      "target": "intake-service",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->orchestrator",
+      "source": "task-specific-agent-factory",
+      "target": "orchestrator",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->policy-engine",
+      "source": "task-specific-agent-factory",
+      "target": "policy-engine",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->review-service",
+      "source": "task-specific-agent-factory",
+      "target": "review-service",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->risk-classifier",
+      "source": "task-specific-agent-factory",
+      "target": "risk-classifier",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->sandbox",
+      "source": "task-specific-agent-factory",
+      "target": "sandbox",
+      "relations": [
+        "connects_to"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->task-contract",
+      "source": "task-specific-agent-factory",
+      "target": "task-contract",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
+      "id": "task-specific-agent-factory->user-request",
+      "source": "task-specific-agent-factory",
+      "target": "user-request",
+      "relations": [
+        "depends_on"
+      ]
+    },
+    {
       "id": "tool-gateway->audit-store",
       "source": "tool-gateway",
       "target": "audit-store",
@@ -1216,8 +1592,8 @@
     }
   ],
   "validation": {
-    "entityCount": 16,
-    "edgeCount": 43,
+    "entityCount": 19,
+    "edgeCount": 65,
     "workflowCount": 1
   }
 }

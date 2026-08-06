@@ -26,6 +26,7 @@ function App() {
   const selectedCloudScope = selectedStation
     ? AZURE_SCOPE_BY_STAGE[TARGET_WORKFLOW.find((stage) => stage.stationIds.includes(selectedStation.id))?.id ?? '']
     : undefined;
+  const deliveryStep = STATIONS.findIndex((station) => station.id === 'delivery-dock');
   const isFinished = activeStep === STATIONS.length - 1;
   const progress = activeStep < 0 ? 0 : Math.round(((activeStep + 1) / STATIONS.length) * 100);
 
@@ -63,7 +64,11 @@ function App() {
   const status = activeStep < 0
     ? 'Ready for a ticket'
     : isFinished
-    ? 'Delivered, audited, and ready for learning'
+    ? 'Task completed by task-specific Agent; evidence captured'
+    : activeStation?.id === 'delivery-dock'
+    ? 'Task-specific Agent delivered; task run in progress'
+    : activeStep > deliveryStep
+    ? 'Agent result captured; learning loop in progress'
       : `Ticket paused at ${activeStation?.label}`;
 
   return (
@@ -88,9 +93,9 @@ function App() {
         />
         <section className="scene-card" aria-label="Target workflow factory">
           <div className="scene-copy">
-            <span className="kicker">Happy-path ticket run</span>
-            <h2>Build, inspect, and deliver</h2>
-            <p>Click a station to inspect its design, or start the robot tour.</p>
+            <span className="kicker">Happy-path Agent Factory run</span>
+            <h2>Build, hand off, and run</h2>
+            <p>Watch the Factory build a task-specific Agent, deliver it, and capture its task outcome.</p>
           </div>
           <div className="scene-viewport">
             <FactoryFloor2D
@@ -138,8 +143,8 @@ function App() {
             </ol>
           </div>
           <div className="panel-note">
-            <strong>Presentation note</strong>
-            <p>All stations are visual explanations backed by the Markdown specifications in this repository.</p>
+            <strong>Factory boundary</strong>
+            <p>Delivery means the Agent package is ready for runtime use. Task completion happens after the Agent runs the user's task.</p>
           </div>
         </aside>
       </main>

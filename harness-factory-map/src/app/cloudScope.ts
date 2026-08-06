@@ -150,19 +150,19 @@ export const AZURE_SCOPE_BY_STAGE: Record<string, AzureStageScope> = {
       },
     ],
   },
-  execution: {
-    boundary: 'Execution is bounded by the approved task contract. Workers are disposable and evidence is captured separately.',
+  'build-agent': {
+    boundary: 'Agent construction is bounded by the approved task contract and policy decision. The package is not runtime state.',
     components: [
       {
         name: 'Azure Container Apps Jobs',
         category: 'Compute',
-        role: 'Run finite, bounded worker or review jobs.',
-        boundary: 'Ephemeral execution only; no authoritative policy state.',
+        role: 'Run finite build, evaluation, and review jobs for the Agent package.',
+        boundary: 'Ephemeral build/test work only; no package or policy mutation authority.',
       },
       {
         name: 'Azure Service Bus',
         category: 'Messaging',
-        role: 'Dispatch task, progress, review, and result events.',
+        role: 'Dispatch build, evaluation, review, and delivery events.',
         boundary: 'Delivery transport only; not a system of record.',
       },
       {
@@ -174,8 +174,31 @@ export const AZURE_SCOPE_BY_STAGE: Record<string, AzureStageScope> = {
       {
         name: 'Azure Blob Storage',
         category: 'Storage',
-        role: 'Stage outputs, evidence, and review attachments.',
-        boundary: 'Evidence storage only; policy and delivery remain explicit.',
+        role: 'Stage package manifests, evaluation outputs, and review evidence.',
+        boundary: 'Build evidence only; policy and delivery remain explicit.',
+      },
+    ],
+  },
+  'deliver-agent': {
+    boundary: 'Delivery hands a reviewed, versioned Agent package to runtime. Delivery completion is not task completion.',
+    components: [
+      {
+        name: 'Azure Container Registry',
+        category: 'Artifact',
+        role: 'Store the immutable package/runtime image version handed to the Agent runtime.',
+        boundary: 'Artifact source only; cannot approve or mutate a delivered package.',
+      },
+      {
+        name: 'Azure Container Apps',
+        category: 'Compute',
+        role: 'Provide the bounded runtime host for the delivered task-specific Agent.',
+        boundary: 'Runtime host only; package and policy definitions remain immutable.',
+      },
+      {
+        name: 'Azure Cosmos DB for NoSQL',
+        category: 'Data',
+        role: 'Store the delivery record, package version, launch reference, and runtime handoff state.',
+        boundary: 'Operational handoff data only; not the enterprise knowledge source.',
       },
     ],
   },

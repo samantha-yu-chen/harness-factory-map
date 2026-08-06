@@ -34,6 +34,8 @@ function AzureComponentCard({ component }: { component: AzureComponent }) {
 export function TargetWorkflow({ activeStep, entities, onStageSelect, onCloudScopeSelect }: TargetWorkflowProps) {
   const activeStationId = activeStep >= 0 ? STATIONS[activeStep]?.id : undefined;
   const activeStageId = TARGET_WORKFLOW.find((stage) => stage.stationIds.includes(activeStationId ?? ''))?.id;
+  const deliveryStationIndex = STATIONS.findIndex((station) => station.id === 'delivery-dock');
+  const runtimeState = activeStep < deliveryStationIndex ? '' : activeStep === STATIONS.length - 1 ? 'complete' : 'active';
   const [selectedStageId, setSelectedStageId] = useState(TARGET_WORKFLOW[0].id);
   const selectedStage = TARGET_WORKFLOW.find((stage) => stage.id === selectedStageId) ?? TARGET_WORKFLOW[0];
   const selectedScope = AZURE_SCOPE_BY_STAGE[selectedStage.id];
@@ -55,9 +57,22 @@ export function TargetWorkflow({ activeStep, entities, onStageSelect, onCloudSco
       <div className="target-workflow-header">
         <div>
           <span className="kicker">Target system design from the reference workflow</span>
-          <h2>Enterprise brain · single source of truth</h2>
+          <h2>Agent Factory · build, deliver, and run</h2>
         </div>
-        <span className="target-workflow-note">Boundaries, decisions, execution, and learning stay visible.</span>
+        <span className="target-workflow-note">The Factory produces a task-specific Agent; the Agent produces the task result.</span>
+      </div>
+      <div className="factory-outcome-flow" aria-label="Factory outcome and runtime outcome">
+        <div className={runtimeState ? 'factory-outcome-card factory-outcome-build complete' : 'factory-outcome-card factory-outcome-build'}>
+          <span>Factory output</span>
+          <strong>Task-specific Agent package</strong>
+          <p>Versioned role, tools, guardrails, memory references, and evaluation evidence.</p>
+        </div>
+        <span className="factory-outcome-arrow" aria-hidden="true">→</span>
+        <div className={`factory-outcome-card factory-outcome-run ${runtimeState}`}>
+          <span>After handoff</span>
+          <strong>{runtimeState === 'complete' ? 'Agent task completed' : 'Agent carries out user task'}</strong>
+          <p>{runtimeState === 'active' ? 'The delivered package is now running the user task.' : 'Bounded runtime returns result, artifacts, usage, and evidence for learning.'}</p>
+        </div>
       </div>
       <div className="target-workflow-steps">
         {TARGET_WORKFLOW.map((stage, index) => {
