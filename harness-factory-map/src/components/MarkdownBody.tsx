@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface MarkdownBodyProps {
   body: string;
@@ -7,7 +8,7 @@ interface MarkdownBodyProps {
 export function MarkdownBody({ body }: MarkdownBodyProps) {
   return (
     <div className="markdown-body">
-      <ReactMarkdown>{body}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
     </div>
   );
 }
