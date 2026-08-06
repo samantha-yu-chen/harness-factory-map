@@ -3,7 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { ComponentDrawer } from '../src/components/ComponentDrawer';
 import { MarkdownBody } from '../src/components/MarkdownBody';
-import { FLOW_STAGES, PLATFORM_STAGE, entity, map } from '../src/app/factoryModel';
+import {
+  FACTORY_STAGES,
+  PLATFORM_STAGE,
+  RUNTIME_STAGES,
+  entity,
+  map,
+} from '../src/app/factoryModel';
 
 describe('generated map integrity', () => {
   it('keeps the reference workflow fully covered', () => {
@@ -32,9 +38,24 @@ describe('generated map integrity', () => {
     }
   });
 
-  it('orders the stages from the always-on platform band through the seven flow stages', () => {
+  it('orders the platform band, the factory loop, and the runtime loop', () => {
     expect(PLATFORM_STAGE?.stageOrder).toBe(0);
-    expect(FLOW_STAGES.map((stage) => stage.stageOrder)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(FACTORY_STAGES.map((stage) => stage.stageOrder)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(RUNTIME_STAGES.map((stage) => stage.stageOrder)).toEqual([8, 9, 10, 11, 12]);
+  });
+
+  it('keeps the runtime loop beyond the reference diagram', () => {
+    for (const stage of RUNTIME_STAGES) {
+      expect(stage.referenceElements, `${stage.id} claims reference elements`).toEqual([]);
+    }
+  });
+
+  it('runs production on reused factory machinery rather than a second engine', () => {
+    const execute = RUNTIME_STAGES.find((stage) => stage.stageOrder === 10);
+    expect(execute?.componentIds).toEqual([]);
+    expect(execute?.reusedComponentIds).toContain('team-orchestrator');
+    expect(execute?.reusedComponentIds).toContain('agent-runtime');
+    expect(execute?.reusedComponentIds).toContain('sandbox');
   });
 });
 

@@ -112,6 +112,16 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .learning-band strong { color: #0b5566; font-size: 0.8rem; }
 .stage-reuse { color: var(--accent); font-style: normal; font-weight: 700; }
 
+/* ---------- engineering rails ---------- */
+.stage-rail { margin-top: 12px; }
+.stage-rail:first-of-type { margin-top: 4px; }
+.rail-label { align-items: baseline; display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 7px; }
+.rail-label strong { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.rail-label span { color: var(--ink-3); font-size: 0.68rem; }
+.reuse-head { border-top: 1px dashed var(--line); margin-top: 18px; padding-top: 13px; }
+.reuse-head p { color: var(--ink-2); font-size: 0.73rem; line-height: 1.45; margin: 4px 0 11px; max-width: 68ch; }
+.component-grid.reused .component-card { background: #fafbfe; border-style: dashed; }
+
 /* ---------- adoption ---------- */
 .adoption-table { border-collapse: collapse; margin-top: 14px; width: 100%; }
 .adoption-table caption { color: var(--ink-3); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; padding-bottom: 7px; text-align: left; text-transform: uppercase; }
