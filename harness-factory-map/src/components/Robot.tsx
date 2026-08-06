@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Ticket } from './Ticket';
@@ -11,6 +11,7 @@ interface RobotProps {
 export function Robot({ target, holdingTicket }: RobotProps) {
   const robot = useRef<THREE.Group>(null);
   const targetVector = useMemo(() => new THREE.Vector3(), []);
+  const [initialPosition] = useState<[number, number, number]>(() => target);
 
   useFrame((_, delta) => {
     if (!robot.current) return;
@@ -20,7 +21,7 @@ export function Robot({ target, holdingTicket }: RobotProps) {
   });
 
   return (
-    <group ref={robot} position={target}>
+    <group ref={robot} position={initialPosition}>
       <mesh castShadow position={[0, 0.82, 0]}>
         <boxGeometry args={[0.72, 0.78, 0.58]} />
         <meshStandardMaterial color="#f97316" />

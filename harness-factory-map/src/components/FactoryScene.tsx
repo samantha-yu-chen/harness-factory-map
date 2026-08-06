@@ -39,9 +39,7 @@ function FactoryFloor() {
           </Html>
         </group>
       ))}
-      <mesh position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <gridHelper args={[16, 16, '#a6b6cb', '#c3cfdd']} />
-      </mesh>
+      <gridHelper args={[16, 16, '#a6b6cb', '#c3cfdd']} position={[0, -0.01, 0]} />
     </group>
   );
 }
@@ -72,7 +70,7 @@ export function FactoryScene({ activeStationId, selectedStationId, activeStep, o
   const ticketAt = activeStep < 0
     ? [0, -4, 0] as [number, number, number]
     : activeStep === 0
-      ? [...STATIONS[0].position.slice(0, 2), STATIONS[0].position[2] - 0.15] as [number, number, number]
+      ? [STATIONS[0].position[0], 1.24, STATIONS[0].position[2] - 0.15] as [number, number, number]
       : activeStep === STATIONS.length - 1
         ? [deliveryStation.position[0], 1.24, deliveryStation.position[2] - 0.2] as [number, number, number]
         : robotTarget;
