@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/harness-factory-map/spec.schema.json",
+  "title": "Harness Factory Map Specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "entity_type",
+    "plane",
+    "scope",
+    "status",
+    "risk",
+    "actor_type",
+    "description",
+    "owner"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entity_type": {
+      "enum": [
+        "actor",
+        "component",
+        "artifact",
+        "decision",
+        "external-system",
+        "workflow-step"
+      ]
+    },
+    "plane": {
+      "enum": [
+        "request",
+        "control",
+        "execution",
+        "knowledge",
+        "assurance",
+        "external"
+      ]
+    },
+    "scope": {
+      "enum": [
+        "mvp",
+        "next",
+        "future"
+      ]
+    },
+    "status": {
+      "enum": [
+        "idea",
+        "specified",
+        "ready",
+        "building",
+        "implemented",
+        "validated",
+        "production-ready",
+        "blocked"
+      ]
+    },
+    "risk": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "actor_type": {
+      "enum": [
+        "human",
+        "agent",
+        "deterministic-system",
+        "external"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "connects_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "workflow_order": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "workflow_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "responsibilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "owns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "does_not_own": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "failure_behaviour": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}
