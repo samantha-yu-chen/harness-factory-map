@@ -22,7 +22,6 @@
     "scripts",
     "tests",
     "eslint.config.js",
-    "vite.config.ts",
-    "tailwind.config.ts"
+    "vite.config.ts"
   ]
 }
