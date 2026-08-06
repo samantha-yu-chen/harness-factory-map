@@ -1,6 +1,8 @@
 # Build Brief — Enterprise Agent Factory
 
-This is what the engineering harness team picks up. It sequences the twenty-six components in `specs/components/` into four delivery waves and states what "done" means for each.
+This is what the engineering harness team picks up. It sequences the twenty-nine components in `specs/components/` into four delivery waves and states what "done" means for each.
+
+The platform has two loops. Waves 1 and 2 build the **factory** — the path from a request to an agent that is proven and approved. Wave 3 opens the **runtime loop**, where a published agent is invoked by the people who need it. Wave 4 lets it run unattended and closes the learning loop.
 
 The component specifications are authoritative for behaviour. This document is authoritative for order.
 
@@ -13,9 +15,9 @@ Four decisions are needed. Each blocks work rather than merely informing it.
 | Which business unit hosts the first agent team, and who is its named owner | Leadership sponsor | The whole of wave 1 — there is nothing to build without a first customer |
 | Which service desk `ticket-bridge` targets, and whether it exposes closure webhooks | Head of Service Management | `ticket-bridge`, and the stage 4 routing rationale |
 | Whether the platform faces the public internet | Network / CISO | `request-intake` — Front Door is removable if it does not, which is $35–70/month |
-| Whether an agent acting for a requester inherits that person's data access, or a narrower agreed intersection | CISO with each data owner | `identity-access`, `policy-engine`, `retrieval-service` |
+| Whether an agent acting for a requester inherits that person's data access, or a narrower agreed intersection | CISO with each data owner | `identity-access`, `policy-engine`, `retrieval-service`, and every runtime authorisation |
 
-The remaining fifty-one open questions are recorded per component under `open_questions` and surface in the executive view. They can be answered during their component's wave.
+The remaining open questions are recorded per component under `open_questions` and surface in the executive view. They can be answered during their component's wave.
 
 ## Wave 1 — Walking skeleton
 
@@ -66,40 +68,47 @@ Seven components. Roughly $185–570/month.
 
 **Wave 2 is done when:** an agent grounds its work in cited enterprise knowledge, every tool call is authorised by versioned rules, a run that exceeds its envelope stops and delivers honestly, and simple work is routed to the service desk instead of an agent.
 
-## Wave 3 — Reuse and governance
+## Wave 3 — Publish and operate
 
-**Goal:** the platform is governable at scale rather than by memory.
+**Goal:** an employee gets work done without an engineer being involved. This is the wave where the platform stops being a project.
 
-Four components. Roughly $40–115/month.
+Six components. Roughly $80–225/month of infrastructure.
 
 | Component | Owner | Risk | Operations |
 | --- | --- | --- | --- |
 | Governance Board | governance-office | critical | 3 |
+| Agent Deployment | harness-platform | critical | 4 |
 | Agent Team Registry | harness-platform | high | 4 |
+| Agent Catalogue | harness-platform | high | 3 |
 | Solution & Agent Team Registry | harness-platform | medium | 3 |
 | Clarification Agent | harness-platform | high | 3 |
 
-Through waves 1 and 2, stage 5 governance runs as a scheduled human review — a template, a meeting, a written decision, filed. That is a legitimate implementation and the right one before proposal volume justifies tooling. This wave systematises it.
+**Build order within the wave:** governance and the registry first — nothing may be published that leadership has not approved. Then `agent-deployment`, which is the component that carries the real weight here: it binds a package version to a business unit with an envelope, a ceiling, a risk tier, and a health state. Then the catalogue on top of it. `clarification-agent` last, and only because the nine-question interview can remain a form until abandonment rate becomes a real cost.
 
-`clarification-agent` sits here rather than in wave 1 because the nine-question interview can be a form until request volume makes the form's abandonment rate a real cost.
+**Keep `agent-deployment` and `agent-team-registry` separate.** They look like one record and are not. The registry answers "may this team exist" and changes at governance pace. The deployment answers "which version is live, where, right now" and changes weekly. Merging them is the specific mistake that makes a kill switch stop working, because the thing you need to switch off is the deployment.
 
-**Wave 3 is done when:** a dedicated team can only exist against a recorded leadership decision with a named owner, a budget ceiling, and a review date — and the reuse check routes a matching request to that team without a new intake.
+Through waves 1 and 2, stage 5 governance runs as a scheduled human review — a template, a meeting, a written decision, filed. That is the right implementation before proposal volume justifies tooling. This wave systematises it.
 
-## Wave 4 — Learning loop
+**Wave 3 is done when:** an employee can open a catalogue, see what an agent does and what a run costs, run it themselves, and get a reviewed outcome back — with the run authorised against the deployment envelope, attributed to their business unit, and the deployment able to suspend itself on cost or health.
 
-**Goal:** the platform improves per run instead of only growing.
+## Wave 4 — Unattended and learning
 
-Three components. Roughly $30–95/month.
+**Goal:** the work happens without anyone starting it, and the platform improves per run instead of only growing.
+
+Four components. Roughly $40–120/month.
 
 | Component | Owner | Risk | Operations |
 | --- | --- | --- | --- |
-| Outcome Ledger | harness-platform | medium | 3 |
+| Schedule Runner | harness-platform | high | 3 |
+| Outcome Ledger | harness-platform | medium | 5 |
 | Improvement Proposal | harness-platform | medium | 3 |
 | Team Lifecycle | harness-platform | medium | 3 |
 
-There is nothing to measure before there are outcomes, which is why this wave is last. It should not slip past that — `team-lifecycle` is what stops the register filling with teams nobody remembers approving, and that decay starts the quarter after wave 3 ships.
+`schedule-runner` is deliberately last among the runtime components. An attended run has a human already looking at the result — the cheapest oversight the platform will ever have — and scheduling removes it. Before it is safe you need health thresholds calibrated against real outcomes and automatic suspension that has been seen to work, and both come from running attended traffic first.
 
-**Wave 4 is done when:** every registered team has a scheduled review it cannot silently miss, the six platform metrics are published, and an improvement to a prompt or a rubric can be proposed from evidence and approved by a person.
+There is nothing to measure before there are outcomes, which is why the learning components sit here too. That should not slip — `team-lifecycle` is what stops the register filling with teams nobody remembers approving, and that decay starts the quarter after wave 3 ships.
+
+**Wave 4 is done when:** a schedule fires an agent unattended through the same door a person uses, a missed window alarms rather than passing silently, every registered team has a review it cannot silently miss, and an improvement to a prompt or a rubric can be proposed from evidence and approved by a person.
 
 ## Definition of done, per component
 
@@ -124,3 +133,5 @@ Stated so nobody rediscovers it mid-build:
 - **Generic tools.** No shell, no arbitrary HTTP. Every tool is typed and reviewed, at roughly a day of engineering each. That is the real unit cost of a capability.
 - **Fine-tuning.** Prompt and retrieval engineering first. Revisit only against a measured ceiling.
 - **A production environment.** The cost model is one non-production environment. Production with redundancy is roughly two to three times it.
+- **Event-triggered agents.** A published agent is started by a person or a schedule. Firing on a ticket being created or a file landing is a larger permission conversation than either, and it waits until the platform has operating history on both simpler surfaces.
+- **Free-text parameters on published agents.** Declared, enumerated inputs only, until there is an answer to what stops a deployment growing scope through its own input fields.

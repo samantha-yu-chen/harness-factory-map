@@ -44,7 +44,15 @@ Enforced by the generator, not by convention. Two components claiming the same `
 
 An unknown `reference_map` claim is a typo and fails the build. An unclaimed reference element is a genuine gap and is reported in the map. Hiding gaps behind a build failure creates the wrong incentive.
 
-### A11. Every cost carries a driver
+### A11. Reuse is declared, never duplicated
+
+A component participating in more than one stage says so with `serves_stages`. Copying a component so each loop has its own is how the two drift apart, and the drift shows up as a production incident rather than a build failure.
+
+### A12. The reference diagram's boundary stays visible
+
+Factory stages declare `reference_elements` and are measured against the diagram. Runtime stages declare none and the generator rejects any they claim. What the diagram specified and what this map added must remain separable, because they carry different levels of external agreement.
+
+### A13. Every cost carries a driver
 
 A monthly range without a stated volume assumption is not reviewable. The schema requires the driver.
 
@@ -99,3 +107,19 @@ Anything that can switch itself back on is not a control.
 ### B12. Incomplete measurement means at-limit
 
 Missing cost telemetry is treated as budget exhausted, never as zero spend. Telemetry gaps correlate with load, and load correlates with spend.
+
+### B13. Approval to exist is not permission to run
+
+Governance approves a capability once. Every individual invocation is authorised on its own against identity, scope, entitlement, and budget. A platform that checks only at approval is correct on day one and progressively wrong from day two, and the drift is invisible because nothing fails.
+
+### B14. Production runs on the machinery it was verified on
+
+A published agent uses the same orchestrator, runtime, gateway, sandbox, and evaluation service the factory proved it against — not equivalent machinery, the same machinery. A separate production engine turns every verification into a claim about a system that no longer exists.
+
+### B15. A deployment is not a registry entry
+
+The registry records that a team may exist, and changes at governance pace. The deployment records which package version is live, in which business unit, under whose ownership, and changes weekly. The thing you switch off is the deployment.
+
+### B16. One invocation door
+
+Scheduled runs enter through the same endpoint a person's click does. Two entry paths means two places to enforce the input contract, and the less-exercised one would be carrying the unattended traffic — the traffic with nobody watching.
