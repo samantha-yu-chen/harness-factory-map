@@ -78,7 +78,7 @@ function App() {
           <div className="scene-copy">
             <span className="kicker">Happy-path ticket run</span>
             <h2>Build, inspect, and deliver</h2>
-            <p>Orbit the factory, click a station, or start the robot tour.</p>
+            <p>Click a station to inspect its design, or start the robot tour.</p>
           </div>
           <div className="scene-viewport">
             <FactoryFloor2D
@@ -135,6 +135,7 @@ function App() {
       <SpecDrawer
         station={selectedStation}
         entity={selectedEntity}
+        entities={map.entities}
         onClose={() => setSelectedStation(undefined)}
       />
     </div>
