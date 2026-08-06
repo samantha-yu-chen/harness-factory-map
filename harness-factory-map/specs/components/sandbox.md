@@ -27,6 +27,8 @@ connects_to:
   - tool-gateway
   - observability
   - audit-log
+serves_stages:
+  - stage-10-execute
 reference_map: []
 responsibilities:
   - Provide a fresh, isolated environment per step

@@ -25,12 +25,16 @@ depends_on:
   - evaluation-service
   - team-orchestrator
 connects_to:
+  - agent-deployment
   - outcome-delivery
   - outcome-ledger
   - audit-log
+serves_stages:
+  - stage-11-deliver
 reference_map:
   - Review (human in the loop)
 responsibilities:
+  - Apply the review requirement from the deployment risk tier, for production runs
   - Route a result to the reviewer required by its risk tier
   - Present evaluation evidence, citations, and the contract side by side
   - Record an approve, reject, or amend verdict with a reason
@@ -50,6 +54,7 @@ permissions:
   - Assign review tasks to named humans
   - Block delivery pending a verdict
 restrictions:
+  - Cannot let a caller, an agent, or a request body set its own risk tier
   - An agent identity can never record a verdict
   - The requester cannot be the sole reviewer of high or critical risk work
   - A reviewer cannot approve without the evidence bundle having been served to them
@@ -90,6 +95,16 @@ api_contract:
     timeout: 2s
     auth: "Entra ID; reviewer or operator role"
     failure: "Queue depth and overdue count are always available, because an unmonitored review queue is the platform's most likely silent failure"
+  - operation: "POST /v1/reviews/tiered"
+    kind: sync-api
+    caller: team-orchestrator
+    worker: human-review-gate
+    request: "{ run_id, deployment_id, result_ref, evidence_ref }"
+    response: "200 { required (none|reviewer|reviewer_and_domain_owner|reviewer_and_sponsor), review_id, sampled: boolean, service_level }"
+    idempotency: "run_id"
+    timeout: 1s
+    auth: "Workload identity"
+    failure: "The risk tier is read from the deployment and never from the request body; an unreadable tier is treated as the highest tier; a queue breaching its service level raises a deployment health signal rather than auto-approving"
 events_emitted:
   - review.queued
   - review.verdict.recorded

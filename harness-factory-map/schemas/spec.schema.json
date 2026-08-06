@@ -133,10 +133,19 @@
       "maximum": 4
     },
     "stage_order": {
-      "description": "Position of a workflow-step in the reference diagram. Stage 0 is the always-on platform band.",
+      "description": "Position of a workflow-step within its loop. Stage 0 is the always-on platform band; 1-7 are the factory loop; 8-12 are the runtime loop.",
       "type": "integer",
       "minimum": 0,
-      "maximum": 7
+      "maximum": 12
+    },
+    "loop": {
+      "description": "Workflow-step only. Which band this stage belongs to. The platform band is always on; the factory loop runs once per solution; the runtime loop runs on every invocation of a published agent; the learning band closes both.",
+      "enum": [
+        "platform",
+        "factory",
+        "runtime",
+        "learning"
+      ]
     },
     "tags": {
       "type": "array",
@@ -165,6 +174,16 @@
     "workflow_order": {
       "type": "integer",
       "minimum": 1
+    },
+    "serves_stages": {
+      "description": "Additional stages this component participates in beyond its home workflow_id. Used where the runtime loop deliberately reuses factory machinery rather than duplicating it.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "default": []
     },
     "workflow_id": {
       "type": "string",

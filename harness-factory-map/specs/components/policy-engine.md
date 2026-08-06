@@ -26,11 +26,16 @@ depends_on:
   - agent-team-registry
   - identity-access
 connects_to:
+  - agent-catalogue
+  - agent-deployment
   - tool-gateway
   - team-orchestrator
   - audit-log
+serves_stages:
+  - stage-9-authorise
 reference_map: []
 responsibilities:
+  - Authorise each production invocation against the deployment envelope intersected with the caller entitlements
   - Evaluate versioned policy rules against a concrete request
   - Return allow, deny, or escalate with a citable rationale
   - Derive the permission envelope for a task from its contract and team scope
@@ -92,6 +97,16 @@ api_contract:
     timeout: 30s
     auth: "Entra ID; policy-author role, and never an agent identity"
     failure: "422 when the consistency check fails; a rule set that would deny currently-allowed critical paths is reported in shadow_results and requires explicit confirmation"
+  - operation: "POST /v1/policy/invocations"
+    kind: sync-api
+    caller: agent-catalogue
+    worker: policy-engine
+    request: "{ invocation_id, deployment_id, caller_upn, parameters{}, requested_at }"
+    response: "200 { decision (allow|deny), effective_scope{ tools[], data_domains[], systems[] }, rule_set_version, reason }"
+    idempotency: "invocation_id; the decision is recorded once and replayed"
+    timeout: 500ms
+    auth: "Workload identity"
+    failure: "Denies when the deployment envelope cannot be read, when the caller lacks the access the run would exercise, or when the rule set version is unavailable — it never falls back to a cached permissive decision"
 events_emitted:
   - policy.decision.issued
   - policy.decision.denied

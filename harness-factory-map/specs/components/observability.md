@@ -23,10 +23,14 @@ tags:
   - cost
 depends_on: []
 connects_to:
+  - agent-deployment
   - budget-guard
   - outcome-ledger
+serves_stages:
+  - stage-12-record
 reference_map: []
 responsibilities:
+  - Publish per-deployment health — success rate, cost burn, review latency — and flag incomplete measurement
   - Collect structured logs, metrics, and traces from every component
   - Correlate a full agent run under one trace id
   - Emit token and cost telemetry per task, per team, and per model
@@ -72,6 +76,25 @@ api_contract:
     timeout: 2s
     auth: "Workload identity"
     failure: "Returns partial data with a completeness flag; budget-guard treats incomplete cost data as at-limit, not as zero"
+  - operation: "GET /v1/telemetry/deployments/{deployment_id}/health"
+    kind: query
+    caller: agent-deployment, team-lifecycle, agent-catalogue
+    worker: observability
+    request: "{ deployment_id, window }"
+    response: "200 { success_rate, run_count, cost_burn_usd, cost_forecast_usd, review_latency_p95, telemetry_complete: boolean }"
+    timeout: 2s
+    auth: "Workload identity"
+    failure: "telemetry_complete false is returned rather than a partial number presented as whole; every caller must treat incomplete measurement as at-limit"
+  - operation: "deployment.health.degraded"
+    kind: async-event
+    caller: observability
+    worker: agent-deployment
+    request: "{ deployment_id, signal (success_rate|cost_burn|review_latency), observed, threshold, window }"
+    response: "Consumed by agent-deployment, which suspends the deployment"
+    idempotency: "deployment_id + signal + window"
+    timeout: "Delivered within one evaluation window"
+    auth: "Workload identity"
+    failure: "A signal that cannot be evaluated is emitted as degraded rather than withheld — silence must never read as health"
 events_emitted:
   - telemetry.alert.raised
   - telemetry.cost.anomaly

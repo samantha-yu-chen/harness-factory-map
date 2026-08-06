@@ -113,6 +113,19 @@ function assertStageShape(metadata: SpecificationMetadata, sourcePath: string): 
   if (metadata.stage_order === undefined) {
     throw new SpecificationError(`${sourcePath}: a workflow-step requires stage_order`);
   }
+  if (metadata.loop === undefined) {
+    throw new SpecificationError(`${sourcePath}: a workflow-step requires loop`);
+  }
+  // WHY: the reference diagram covers the factory only. Runtime stages are this map's
+  // extension beyond it, so they declare no elements — and must say so via loop.
+  if (metadata.loop === 'runtime') {
+    if (metadata.reference_elements.length > 0) {
+      throw new SpecificationError(
+        `${sourcePath}: a runtime stage lies beyond the reference diagram and cannot declare reference_elements`,
+      );
+    }
+    return;
+  }
   if (metadata.reference_elements.length === 0) {
     throw new SpecificationError(`${sourcePath}: a workflow-step must declare reference_elements`);
   }
@@ -188,9 +201,16 @@ function validateStageMembership(specifications: ParsedFile[]): void {
   );
   for (const { metadata, sourcePath } of specifications) {
     const stageId = metadata.workflow_id;
-    if (stageId === undefined) continue;
-    if (!stageIds.has(stageId)) {
+    if (stageId !== undefined && !stageIds.has(stageId)) {
       throw new SpecificationError(`${sourcePath}: workflow_id "${stageId}" is not a stage specification`);
+    }
+    for (const served of metadata.serves_stages) {
+      if (!stageIds.has(served)) {
+        throw new SpecificationError(`${sourcePath}: serves_stages "${served}" is not a stage specification`);
+      }
+      if (served === stageId) {
+        throw new SpecificationError(`${sourcePath}: serves_stages repeats its own workflow_id "${served}"`);
+      }
     }
   }
 }
@@ -267,6 +287,13 @@ function memberIds(specifications: ParsedFile[], stageId: string): string[] {
     .map(({ metadata }) => metadata.id);
 }
 
+function reuserIds(specifications: ParsedFile[], stageId: string): string[] {
+  return specifications
+    .filter(({ metadata }) => metadata.serves_stages.includes(stageId))
+    .map(({ metadata }) => metadata.id)
+    .sort();
+}
+
 function claimantsOf(specifications: ParsedFile[], element: string): string[] {
   return specifications
     .filter(({ metadata }) => metadata.reference_map.includes(element))
@@ -283,8 +310,10 @@ function buildStages(specifications: ParsedFile[]): GeneratedStage[] {
       description: metadata.description,
       execSummary: metadata.exec_summary,
       stageOrder: metadata.stage_order ?? 0,
+      loop: metadata.loop ?? 'factory',
       sourcePath,
       componentIds: memberIds(specifications, metadata.id),
+      reusedComponentIds: reuserIds(specifications, metadata.id),
       referenceElements: metadata.reference_elements.map((element) => ({
         element,
         coveredBy: claimantsOf(specifications, element),

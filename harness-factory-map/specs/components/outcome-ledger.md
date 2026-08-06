@@ -26,14 +26,18 @@ depends_on:
   - observability
   - audit-log
 connects_to:
+  - agent-deployment
   - improvement-proposal
   - team-lifecycle
   - governance-board
+serves_stages:
+  - stage-12-record
 reference_map:
   - Capture insights & feedback
   - Record learnings & outcomes
   - Measure impact & performance
 responsibilities:
+  - Record every production run against its deployment, business unit, and package version
   - Record every delivered outcome with its cost, evidence, and verdicts
   - Capture requester and reviewer feedback against the delivery
   - Compute and publish the platform metric set
@@ -45,6 +49,7 @@ does_not_own:
   - The outcomes themselves
   - Any change to policy, prompts, or teams
 data_owned:
+  - run record
   - outcome record
   - feedback record
   - platform metric series
@@ -94,6 +99,25 @@ api_contract:
     timeout: 10s
     auth: "Workload identity"
     failure: "A pattern is a suggestion with its evidence attached; it carries no authority and triggers no action by itself"
+  - operation: "POST /v1/runs"
+    kind: async-event
+    caller: outcome-delivery
+    worker: outcome-ledger
+    request: "{ run_id, invocation_id, deployment_id, business_unit, package_version, status, model_cost_usd, infra_cost_usd, review_decision, trigger (catalogue|schedule) }"
+    response: "202 { run_id, recorded_at }"
+    idempotency: "run_id"
+    timeout: 2s
+    auth: "Workload identity"
+    failure: "A record that cannot be written fails the run rather than losing the trace; missing cost is recorded as unknown and treated as at-limit downstream, never as zero"
+  - operation: "GET /v1/deployments/{deployment_id}/value"
+    kind: query
+    caller: "Leadership, governance-board, team-lifecycle"
+    worker: outcome-ledger
+    request: "{ deployment_id, period }"
+    response: "200 { run_count, success_rate, total_cost_usd, cost_per_successful_run_usd, review_load_hours, business_unit }"
+    timeout: 3s
+    auth: "Entra ID or workload identity"
+    failure: "Returns explicit coverage of the period rather than extrapolating from partial data"
 events_emitted:
   - outcome.recorded
   - metrics.published

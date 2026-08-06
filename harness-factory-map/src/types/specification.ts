@@ -79,11 +79,13 @@ export interface SpecificationMetadata {
   human_accountable: string;
   build_wave?: number;
   stage_order?: number;
+  loop?: StageLoop;
   tags: string[];
   depends_on: string[];
   connects_to: string[];
   workflow_order?: number;
   workflow_id?: string;
+  serves_stages: string[];
   reference_elements: string[];
   reference_map: string[];
   responsibilities: string[];
@@ -123,14 +125,18 @@ export interface ReferenceElementCoverage {
   coveredBy: string[];
 }
 
+export type StageLoop = 'platform' | 'factory' | 'runtime' | 'learning';
+
 export interface GeneratedStage {
   id: string;
   name: string;
   description: string;
   execSummary: string;
   stageOrder: number;
+  loop: StageLoop;
   sourcePath: string;
   componentIds: string[];
+  reusedComponentIds: string[];
   referenceElements: ReferenceElementCoverage[];
 }
 

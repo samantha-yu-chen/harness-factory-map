@@ -15,6 +15,7 @@ business_value: This is where accountability is attached to a name. Everything t
 owner: governance-office
 human_accountable: Leadership Team sponsor
 stage_order: 5
+loop: factory
 tags:
   - governance
   - approval

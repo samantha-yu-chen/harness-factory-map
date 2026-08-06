@@ -15,6 +15,7 @@ business_value: Reuse is the only lever that stops an agent platform growing a l
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 stage_order: 2
+loop: factory
 tags:
   - reuse
   - registry

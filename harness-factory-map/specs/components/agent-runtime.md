@@ -30,6 +30,8 @@ connects_to:
   - sandbox
   - observability
   - audit-log
+serves_stages:
+  - stage-10-execute
 reference_map:
   - Understand
   - Research

@@ -25,12 +25,16 @@ depends_on:
   - tool-gateway
   - evaluation-service
 connects_to:
+  - agent-deployment
   - agent-runtime
   - agent-team-registry
   - improvement-proposal
   - audit-log
+serves_stages:
+  - stage-10-execute
 reference_map: []
 responsibilities:
+  - Expose evaluation results so agent-deployment can refuse to promote a version that did not pass
   - Declare roles, system prompts, allowed tools, model tier per step, and memory references
   - Carry the evaluation suite the package must pass before release
   - Produce an immutable, signed, versioned artifact

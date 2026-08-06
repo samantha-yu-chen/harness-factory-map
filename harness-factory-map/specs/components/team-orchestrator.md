@@ -34,6 +34,8 @@ connects_to:
   - work-classifier
   - agent-team-registry
   - audit-log
+serves_stages:
+  - stage-10-execute
 reference_map:
   - Harness Agent Team executes the work end to end
 responsibilities:

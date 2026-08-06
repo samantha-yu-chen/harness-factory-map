@@ -29,6 +29,8 @@ connects_to:
   - agent-package
   - outcome-ledger
   - audit-log
+serves_stages:
+  - stage-10-execute
 reference_map:
   - Validate
 responsibilities:

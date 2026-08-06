@@ -24,6 +24,7 @@ tags:
 depends_on:
   - governance-board
 connects_to:
+  - agent-deployment
   - solution-registry
   - policy-engine
   - team-orchestrator
@@ -33,6 +34,7 @@ connects_to:
 reference_map:
   - APPROVED — spin up dedicated agent team (registered, monitored, governed)
 responsibilities:
+  - Hand a registered team to agent-deployment for binding to a package version and a business unit
   - Register a team only against an approved governance decision
   - Hold owner, scope, budget ceiling, review date, and current status
   - Publish capability descriptions so the team becomes discoverable for reuse

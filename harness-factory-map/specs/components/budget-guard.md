@@ -25,13 +25,18 @@ depends_on:
   - observability
   - agent-team-registry
 connects_to:
+  - agent-catalogue
+  - agent-deployment
   - team-orchestrator
   - identity-access
   - audit-log
+serves_stages:
+  - stage-9-authorise
 reference_map:
   - "Criterion: value & ROI"
   - "Criterion: resourcing & ownership"
 responsibilities:
+  - Enforce a deployment monthly ceiling in addition to the per-run cap
   - Reserve a spending envelope before a task starts
   - Track actual spend against the reservation during the run
   - Stop a task that exhausts its envelope and deliver a partial result honestly
@@ -93,6 +98,16 @@ api_contract:
     idempotency: "team_id + month"
     timeout: "Retried until acknowledged; a breach is never dropped"
     failure: "An unacknowledged breach escalates to an incident within 15 minutes"
+  - operation: "POST /v1/budget/deployments/{deployment_id}/reserve"
+    kind: sync-api
+    caller: agent-catalogue
+    worker: budget-guard
+    request: "{ invocation_id, deployment_id, run_cap_usd, monthly_ceiling_usd }"
+    response: "200 { reservation_id, remaining_monthly_usd } or 402 { reason (run_cap|monthly_ceiling) }"
+    idempotency: "invocation_id"
+    timeout: 300ms
+    auth: "Workload identity"
+    failure: "402 denies the run when either the run cap or the deployment monthly ceiling is reached; reaching the monthly ceiling additionally suspends the deployment; missing cost telemetry is treated as at-limit, never as zero spend"
 events_emitted:
   - budget.reserved
   - budget.denied

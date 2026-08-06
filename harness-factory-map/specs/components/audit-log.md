@@ -25,6 +25,8 @@ depends_on:
   - identity-access
 connects_to:
   - outcome-ledger
+serves_stages:
+  - stage-12-record
 reference_map:
   - All decisions are logged and traceable
   - All intake decisions logged to audit trail

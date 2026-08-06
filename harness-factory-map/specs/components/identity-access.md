@@ -29,6 +29,8 @@ connects_to:
   - retrieval-service
   - knowledge-ingestion
   - audit-log
+serves_stages:
+  - stage-9-authorise
 reference_map: []
 responsibilities:
   - Authenticate humans and workloads against the corporate directory

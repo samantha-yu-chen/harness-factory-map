@@ -28,6 +28,8 @@ connects_to:
   - sandbox
   - audit-log
   - observability
+serves_stages:
+  - stage-10-execute
 reference_map: []
 responsibilities:
   - Expose an allow-listed catalogue of typed tool operations

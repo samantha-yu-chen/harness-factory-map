@@ -15,6 +15,7 @@ business_value: This is where the value is produced. Everything upstream exists 
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 stage_order: 6
+loop: factory
 tags:
   - execution
   - agent-team
@@ -22,6 +23,7 @@ tags:
 depends_on: []
 connects_to:
   - stage-7-learning
+  - stage-8-trigger
 reference_elements:
   - Harness Agent Team executes the work end to end
   - Understand
@@ -47,6 +49,7 @@ inputs:
   - An approved task contract and permission envelope
 outputs:
   - A delivered outcome, its artifacts, its evidence, and its cost
+  - For a dedicated team, a verified package version ready to be deployed and published
 permissions:
   - Call only the tools named in the permission envelope, for the duration of the task
 restrictions:

@@ -15,6 +15,7 @@ business_value: This is the cost control point. Sending simple work down the exp
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 stage_order: 4
+loop: factory
 tags:
   - classification
   - routing

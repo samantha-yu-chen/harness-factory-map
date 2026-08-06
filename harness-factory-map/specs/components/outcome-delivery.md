@@ -28,6 +28,8 @@ connects_to:
   - outcome-ledger
   - request-intake
   - audit-log
+serves_stages:
+  - stage-11-deliver
 reference_map:
   - Deliver outcome & log decision
 responsibilities:

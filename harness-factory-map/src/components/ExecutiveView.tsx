@@ -1,13 +1,17 @@
 import { StageFlow } from './StageFlow';
 import {
+  ADOPTION_CURVE,
   COST_BANDS,
-  FLOW_STAGES,
+  FACTORY_STAGES,
+  LEARNING_STAGE,
+  LOOPS,
   OPEN_DECISIONS,
   PLATFORM_STAGE,
-  TASKS_PER_MONTH,
+  RUNS_PER_MONTH,
   entity,
   map,
   presentationFor,
+  stagesOfLoop,
   usd,
 } from '../app/factoryModel';
 import type { GeneratedEntity, GeneratedStage } from '../types/specification';
@@ -59,7 +63,7 @@ function MetricTile({ label, value, sub }: { label: string; value: string; sub: 
 }
 
 function criteriaOfGovernance(): string[] {
-  const stage = FLOW_STAGES.find((item) => item.stageOrder === 5);
+  const stage = FACTORY_STAGES.find((item) => item.stageOrder === 5);
   return (stage?.referenceElements ?? [])
     .map((entry) => entry.element)
     .filter((element) => element.startsWith('Criterion: '))
@@ -90,6 +94,7 @@ export function ExecutiveView({ activeStageId, onStageSelect, onComponentSelect 
   const criteria = criteriaOfGovernance();
   const openCount = OPEN_DECISIONS.length;
   const platform = PLATFORM_STAGE;
+  const learning = LEARNING_STAGE;
 
   return (
     <div className="exec-view">
@@ -101,16 +106,17 @@ export function ExecutiveView({ activeStageId, onStageSelect, onComponentSelect 
           </div>
         </div>
         <p className="hero-copy">
-          Any employee can raise a request through the channels they already use. The system checks whether we
-          already built it, interviews them until the job is clear, decides how much machinery the work actually
-          deserves, and — for anything permanent — asks leadership to fund and own it. Agents do the work. A person
-          signs it off. Everything is recorded.
+          Any employee can raise a request through the channels they already use. The factory decides how much
+          machinery the work deserves, and — for anything permanent — asks leadership to fund and own it. What comes
+          out is an agent that is then <strong>published</strong>: people run it themselves from a catalogue, or it
+          runs on a schedule. That second half is where the work actually gets done, thousands of times, for the
+          cost of one build.
         </p>
         <div className="metric-row">
-          <MetricTile label="Components specified" value={String(map.entities.filter((item) => item.workflow_id).length)} sub="across 8 stages" />
+          <MetricTile label="Components specified" value={String(map.entities.filter((item) => item.workflow_id).length)} sub={`across ${map.stages.length} stages, two loops`} />
           <MetricTile label="Reference coverage" value={`${map.coverage.coveredCount}/${map.coverage.elementCount}`} sub={map.coverage.gaps.length === 0 ? 'no gaps against the target workflow' : `${map.coverage.gaps.length} gaps to close`} />
-          <MetricTile label="Monthly run cost" value={`${usd(COST_BANDS[0].low + COST_BANDS[1].low)}–${usd(COST_BANDS[0].high + COST_BANDS[1].high)}`} sub={`at ${TASKS_PER_MONTH} tasks/month`} />
-          <MetricTile label="Delivery waves" value={String(map.cost.waves.length)} sub="waves 1–2 are the MVP" />
+          <MetricTile label="Monthly run cost" value={`${usd(ADOPTION_CURVE[0].low)}–${usd(ADOPTION_CURVE[0].high)}`} sub={`at ${RUNS_PER_MONTH} published-agent runs/month`} />
+          <MetricTile label="Delivery waves" value={String(map.cost.waves.length)} sub="wave 3 is when people can serve themselves" />
           <MetricTile label="Open decisions" value={String(openCount)} sub="named, not hidden" />
         </div>
       </section>
@@ -118,12 +124,50 @@ export function ExecutiveView({ activeStageId, onStageSelect, onComponentSelect 
       <section className="panel">
         <div className="panel-head">
           <div>
-            <span className="kicker">The decision flow</span>
-            <h2>How a request becomes a delivered outcome</h2>
+            <span className="kicker">The two loops</span>
+            <h2>Building an agent, and then running it</h2>
           </div>
           <p className="panel-aside">Click a stage to see who is accountable and what sits inside it.</p>
         </div>
-        <StageFlow stages={FLOW_STAGES} activeStageId={activeStageId} onSelect={onStageSelect} />
+        <p className="panel-copy">
+          These run at completely different rates, and that is the whole economic case. The factory loop is slow,
+          careful, and governed — it runs once per solution. The runtime loop is what an employee actually touches,
+          and it runs every time somebody needs the work done.
+        </p>
+        {LOOPS.map((loop) => (
+          <div key={loop.id} className={`loop-block loop-${loop.id}`}>
+            <header className="loop-head">
+              <h3>{loop.title}</h3>
+              <span className="loop-cadence">{loop.cadence}</span>
+              <p>{loop.summary}</p>
+            </header>
+            <StageFlow stages={stagesOfLoop(loop.id)} activeStageId={activeStageId} onSelect={onStageSelect} />
+            {loop.id === 'factory' && (
+              <div className="loop-handoff">
+                <span className="handoff-arrow" aria-hidden="true">↓</span>
+                <div>
+                  <strong>The handoff</strong>
+                  <p>
+                    An approved team is registered, bound to a package version and a business unit, and published.
+                    From here it is invoked directly — a request that a deployment already covers never re-enters
+                    the factory.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        {learning && (
+          <button
+            type="button"
+            className="learning-band"
+            onClick={() => onStageSelect(learning)}
+            style={{ borderColor: presentationFor(learning.id).color }}
+          >
+            <span className="kicker">Stage 7 · closes both loops</span>
+            <strong>{learning.name.replace(/^\d+ · /, '')} — {learning.execSummary}</strong>
+          </button>
+        )}
         {platform && (
           <button type="button" className="platform-band" onClick={() => onStageSelect(platform)}
             style={{ borderColor: presentationFor(platform.id).color }}>
@@ -203,6 +247,25 @@ export function ExecutiveView({ activeStageId, onStageSelect, onComponentSelect 
               <small>Not on the cloud bill, and the real constraint on throughput</small>
             </li>
           </ul>
+          <table className="adoption-table">
+            <caption>What adoption costs — the runtime line is the one that moves</caption>
+            <thead>
+              <tr><th>Published-agent runs / month</th><th>Total platform / month</th></tr>
+            </thead>
+            <tbody>
+              {ADOPTION_CURVE.map((point) => (
+                <tr key={point.runs} className={point.runs === RUNS_PER_MONTH ? 'adoption-current' : undefined}>
+                  <td>{point.runs.toLocaleString('en-US')}{point.runs === RUNS_PER_MONTH && <em> · planned</em>}</td>
+                  <td>{usd(point.low)} – {usd(point.high)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="panel-copy small">
+            The largest number here is also the one where the platform is completing thousands of pieces of work a
+            month. The control that bounds it is a ceiling per deployment, not a platform-wide budget — so one
+            team's enthusiasm cannot consume another team's capacity.
+          </p>
         </div>
       </section>
 

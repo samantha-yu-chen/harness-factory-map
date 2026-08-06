@@ -15,6 +15,7 @@ business_value: Without this loop the platform's quality is fixed on day one and
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 stage_order: 7
+loop: learning
 tags:
   - learning
   - improvement

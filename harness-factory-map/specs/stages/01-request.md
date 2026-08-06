@@ -15,6 +15,7 @@ business_value: A single front door is what turns shadow AI usage into a governe
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 stage_order: 1
+loop: factory
 tags:
   - intake
   - channels

@@ -15,6 +15,7 @@ business_value: Without one governed knowledge boundary each agent team invents 
 owner: data-platform
 human_accountable: Chief Data Officer
 stage_order: 0
+loop: platform
 tags:
   - enterprise-brain
   - knowledge

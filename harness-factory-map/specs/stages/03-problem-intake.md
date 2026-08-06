@@ -15,6 +15,7 @@ business_value: Most agent failures are specification failures. This is the chea
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 stage_order: 3
+loop: factory
 tags:
   - intake
   - contract

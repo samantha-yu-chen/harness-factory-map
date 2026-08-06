@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { componentsOf, presentationFor } from '../app/factoryModel';
+import { componentsOf, presentationFor, reusedBy } from '../app/factoryModel';
 import type { GeneratedStage } from '../types/specification';
 
 interface StageFlowProps {
@@ -33,7 +33,12 @@ export function StageFlow({ stages, activeStageId, selectedStageId, onSelect, sh
               <span className="stage-glyph" aria-hidden="true">{look.glyph}</span>
               <strong>{stage.name.replace(/^\d+ · /, '')}</strong>
               <span className="stage-exec">{stage.execSummary}</span>
-              <span className="stage-count">{componentsOf(stage).length} components</span>
+              <span className="stage-count">
+                {componentsOf(stage).length} components
+                {reusedBy(stage).length > 0 && (
+                  <em className="stage-reuse"> + {reusedBy(stage).length} reused</em>
+                )}
+              </span>
               {showBranches && look.branch && <em className="stage-branch">{look.branch}</em>}
             </button>
           </li>

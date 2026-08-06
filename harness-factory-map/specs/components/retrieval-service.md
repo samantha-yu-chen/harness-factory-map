@@ -29,6 +29,8 @@ connects_to:
   - clarification-agent
   - solution-registry
   - audit-log
+serves_stages:
+  - stage-10-execute
 reference_map:
   - Governed access, approved knowledge
 responsibilities:
