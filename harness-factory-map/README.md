@@ -16,7 +16,7 @@ npm run dev
 
 **Executive** — the two loops and the handoff between them, the three execution routes and what each costs, what leadership is actually approving, the monthly run cost split three ways, what adoption does to that number, and every decision still open.
 
-**Engineering** — the thirteen stages, twenty-nine components, each component's API contract with a named caller and worker per operation, its boundary and authoritative data, its failure behaviour and SLO, its Azure placement and cost, plus the build waves, the coverage check, and the deduplicated service rollup.
+**Engineering** — the thirteen stages, twenty-nine components, each component's API contract with a named caller and worker per operation, its boundary and authoritative data, its failure behaviour and SLO, its Azure placement and cost, plus the build plan by repository and wave, the cross-repository contract surface, the coverage check, and the deduplicated service rollup.
 
 Both read the same generated map, so they cannot drift apart.
 
@@ -28,11 +28,15 @@ Both read the same generated map, so they cannot drift apart.
 | Stages | 13 — an always-on platform band, six factory stages, five runtime stages, and the learning band |
 | Components | 29, each with a contract, an owner, a failure behaviour, and a cost |
 | Delivery waves | 4 — wave 3 is when an employee can serve themselves |
+| Repositories | 3 — two splits with a named forcing function, one host with six modules |
+| Cross-repository contracts | 81, each declared on both sides; 92 more relationships stay inside one repository |
 | Reference coverage | Every element of the target workflow is claimed by a specified component |
 
 ## How it stays honest
 
-The generator validates every specification and fails the build on an invalid schema, an unresolved relationship, two components claiming the same authoritative data object, or a claim on a reference-workflow element that no stage declares.
+The generator validates every specification and fails the build on an invalid schema, an unresolved relationship, two components claiming the same authoritative data object, a claim on a reference-workflow element that no stage declares, scheduled work with no repository to land in, a consumer naming an operation its provider does not publish, or an event consumed that nothing emits.
+
+That last pair is what makes a repository split affordable. Inside one repository a broken call is a compile error; across repositories nothing catches it, so the map has to. The check found two real breaks the first time it ran, and one component publishing no way to do something another component's contract already assumed.
 
 It reports — rather than fails on — a coverage gap, because a genuine gap between the target workflow and the specified components is something leadership needs to see.
 
@@ -43,6 +47,7 @@ The reference diagram covers the factory only. The runtime stages are this map's
 ```
 specs/stages/       the thirteen stages across both loops
 specs/components/   the twenty-nine components, with contracts and costs
+specs/units/        the three repositories, each naming its forcing function
 specs/system/       system overview, cost model, and this application
 schemas/            the front-matter contract every specification must meet
 scripts/            the generator and its validation

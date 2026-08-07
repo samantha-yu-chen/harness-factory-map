@@ -56,6 +56,22 @@ Factory stages declare `reference_elements` and are measured against the diagram
 
 A monthly range without a stated volume assumption is not reviewable. The schema requires the driver.
 
+### A14. Scheduled work has a stated home
+
+A `build_wave` means somebody is going to write this. They cannot start without knowing which repository it lands in and which directory inside it, so `deployable_unit` and `module` are required alongside the wave and are validated against the unit's declared module list. A wave with no home fails generation.
+
+### A15. A separate repository names its forcing function
+
+A `deployable-unit` specification must state which of FF1–FF5 justifies a process boundary, or declare itself the host. The default is a module in the host, and "we will want to split this one day" is a refactor available later — not a reason to pay for a network contract now.
+
+### A16. Cross-repository calls are declared on both sides
+
+A provider publishes `api_contract`; a consumer names the exact operation in `consumes`. An entry naming an operation the provider does not publish fails generation. Inside one repository the compiler catches a broken call; across repositories nothing does, so the map has to.
+
+### A17. A consumed event has an emitter or an admission
+
+`events_consumed` is checked against every `events_emitted` in the map. A signal that genuinely originates outside the platform goes in `external_events_consumed`, which is an admission rather than a hiding place. This rule found two real breaks the first time it ran.
+
 ## B. Platform design rules
 
 These are represented throughout the map and should govern every specification.
@@ -120,6 +136,12 @@ A published agent uses the same orchestrator, runtime, gateway, sandbox, and eva
 
 The registry records that a team may exist, and changes at governance pace. The deployment records which package version is live, in which business unit, under whose ownership, and changes weekly. The thing you switch off is the deployment.
 
-### B16. One invocation door
+### B16. A module boundary is earned before it becomes a service boundary
+
+Twenty-nine boundaries ship as three repositories, not twenty-nine and not seven. Execution splits on fault isolation, control on the compliance boundary, and the remaining twenty-one stay one host with six modules because none of them clears FF1–FF5.
+
+The measurable reason: the seven-way split by plane leaves 126 relationships crossing a repository boundary against 52 staying inside one. The three-way split inverts that — 81 crossing, 92 inside. Each crossing needs a version, a mock, a timeout policy, and a failure mode; each internal one is a function call. Promoting a module later is a directory move, because every module ships a public port and a seam test.
+
+### B17. One invocation door
 
 Scheduled runs enter through the same endpoint a person's click does. Two entry paths means two places to enforce the input contract, and the less-exercised one would be carrying the unattended traffic — the traffic with nobody watching.

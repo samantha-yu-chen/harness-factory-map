@@ -4,7 +4,49 @@ This is what the engineering harness team picks up. It sequences the twenty-nine
 
 The platform has two loops. Waves 1 and 2 build the **factory** — the path from a request to an agent that is proven and approved. Wave 3 opens the **runtime loop**, where a published agent is invoked by the people who need it. Wave 4 lets it run unattended and closes the learning loop.
 
-The component specifications are authoritative for behaviour. This document is authoritative for order.
+The component specifications are authoritative for behaviour. This document is authoritative for order and placement.
+
+## Where the work lands
+
+Three repositories, not twenty-nine and not one. Each split names the forcing function that pays for it; everything else is a module in the host.
+
+| Repository | Why separate | Modules | Boundaries | Waves |
+| --- | --- | --- | --- | --- |
+| `harness-execution` | **FF3** fault isolation — this is the only unit that runs untrusted code and touches enterprise systems. A crash here must not reach anything else. FF1 supports it: a genuinely different compute profile. | `orchestration`, `runtime`, `egress`, `isolation` | 5 | 1–2 |
+| `harness-control` | **FF4** regulatory boundary — the evidence trail carries retention and immutability obligations the rest of the platform does not, and the permission model is what a security review actually reads. It calls nobody, so its availability is a floor rather than a function. | `identity`, `policy`, `audit` | 3 | 1–2 |
+| `harness-platform-core` | **Host.** No forcing function applies to any of the six modules inside it. Splitting them would turn roughly ninety-six in-process calls into versioned network contracts, and buy nothing this year. | `intake`, `knowledge`, `governance`, `publication`, `assurance`, `learning` | 21 | 1–4 |
+
+### How much each wave costs each team
+
+| Wave | `harness-execution` | `harness-control` | `harness-platform-core` |
+| --- | --- | --- | --- |
+| 1 | 4 | 2 | 6 |
+| 2 | 1 | 1 | 5 |
+| 3 | — | — | 6 |
+| 4 | — | — | 4 |
+
+Waves 1 and 2 are the only ones where three teams work in parallel. From wave 3 the execution and control repositories are in maintenance, and everything new lands in the host. Staff accordingly: the split is expensive at the start and cheap afterwards, which is the opposite of how it is usually budgeted.
+
+### What crosses a repository boundary
+
+81 relationships cross; 92 stay inside one repository and cost nothing to change.
+
+| From | To | Contracts |
+| --- | --- | --- |
+| `harness-platform-core` | `harness-control` | 31 |
+| `harness-execution` | `harness-platform-core` | 15 |
+| `harness-platform-core` | `harness-execution` | 15 |
+| `harness-execution` | `harness-control` | 9 |
+| `harness-control` | `harness-platform-core` | 8 |
+| `harness-control` | `harness-execution` | 3 |
+
+Every one is declared on both sides: the provider publishes the operation in `api_contract`, the consumer names it in `consumes`, and the generator fails if a provider stops publishing something a consumer still names. That check is the whole reason a three-way split is affordable — inside a repository the compiler catches a broken call, and across repositories nothing else does.
+
+The concentration on `harness-control` is expected and is not a smell: 22 of those 31 are the same audit-record call, and 5 more are token introspection. One contract, many callers.
+
+### The rule that keeps the split available
+
+No file outside a module directory imports from that module's internals. Every module ships one public port and one test that exercises it only through that port, with collaborators injected. When `knowledge` eventually reaches FF1 on index size, extracting it is a directory move and a transport change rather than an excavation.
 
 ## Before wave 1 starts
 
@@ -25,20 +67,20 @@ The remaining open questions are recorded per component under `open_questions` a
 
 Twelve components. Roughly $385–1,000/month of infrastructure.
 
-| Component | Owner | Risk | Operations |
-| --- | --- | --- | --- |
-| Identity & Access | platform-security | critical | 3 |
-| Audit Log | platform-security | critical | 3 |
-| Observability | harness-platform | medium | 2 |
-| Request Intake | harness-platform | medium | 3 |
-| Task Contract | harness-platform | high | 3 |
-| Work Classifier | harness-platform | high | 3 |
-| Team Orchestrator | harness-platform | critical | 4 |
-| Tool Gateway | platform-security | critical | 3 |
-| Sandbox | platform-security | high | 2 |
-| Agent Runtime | harness-platform | critical | 2 |
-| Human Review Gate | harness-platform | critical | 3 |
-| Outcome Delivery | harness-platform | high | 3 |
+| Component | Lands in | Owner | Risk | Operations |
+| --- | --- | --- | --- | --- |
+| Identity & Access | `harness-control` · `identity/` | platform-security | critical | 4 |
+| Audit Log | `harness-control` · `audit/` | platform-security | critical | 3 |
+| Team Orchestrator | `harness-execution` · `orchestration/` | harness-platform | critical | 4 |
+| Tool Gateway | `harness-execution` · `egress/` | platform-security | critical | 3 |
+| Sandbox | `harness-execution` · `isolation/` | platform-security | high | 2 |
+| Agent Runtime | `harness-execution` · `runtime/` | harness-platform | critical | 2 |
+| Observability | `harness-platform-core` · `assurance/` | harness-platform | medium | 2 |
+| Request Intake | `harness-platform-core` · `intake/` | harness-platform | medium | 3 |
+| Task Contract | `harness-platform-core` · `intake/` | harness-platform | high | 3 |
+| Work Classifier | `harness-platform-core` · `intake/` | harness-platform | high | 3 |
+| Human Review Gate | `harness-platform-core` · `assurance/` | harness-platform | critical | 3 |
+| Outcome Delivery | `harness-platform-core` · `assurance/` | harness-platform | high | 3 |
 
 **Build order within the wave:** identity and audit first — nothing else can be correct without them. Then the sandbox and tool gateway, because they are what makes running an agent acceptable at all. Then orchestrator, contract, classifier. Then runtime, review, delivery.
 
@@ -52,15 +94,15 @@ Twelve components. Roughly $385–1,000/month of infrastructure.
 
 Seven components. Roughly $185–570/month.
 
-| Component | Owner | Risk | Operations |
-| --- | --- | --- | --- |
-| Policy Engine | platform-security | critical | 3 |
-| Knowledge Ingestion | data-platform | high | 3 |
-| Retrieval Service | data-platform | high | 2 |
-| Evaluation Service | harness-platform | high | 3 |
-| Agent Package | harness-platform | high | 3 |
-| Budget Guard | harness-platform | high | 3 |
-| Ticket Bridge | harness-platform | low | 3 |
+| Component | Lands in | Owner | Risk | Operations |
+| --- | --- | --- | --- | --- |
+| Policy Engine | `harness-control` · `policy/` | platform-security | critical | 4 |
+| Agent Package | `harness-execution` · `runtime/` | harness-platform | high | 3 |
+| Budget Guard | `harness-platform-core` · `governance/` | harness-platform | high | 3 |
+| Knowledge Ingestion | `harness-platform-core` · `knowledge/` | data-platform | high | 3 |
+| Retrieval Service | `harness-platform-core` · `knowledge/` | data-platform | high | 2 |
+| Evaluation Service | `harness-platform-core` · `assurance/` | harness-platform | high | 3 |
+| Ticket Bridge | `harness-platform-core` · `intake/` | harness-platform | low | 3 |
 
 **Sequence note:** `budget-guard` should land early in this wave, not late. Retrofitting a budget control after the first surprise invoice is a much harder conversation than building it while volume is still small.
 
@@ -74,14 +116,16 @@ Seven components. Roughly $185–570/month.
 
 Six components. Roughly $80–225/month of infrastructure.
 
-| Component | Owner | Risk | Operations |
-| --- | --- | --- | --- |
-| Governance Board | governance-office | critical | 3 |
-| Agent Deployment | harness-platform | critical | 4 |
-| Agent Team Registry | harness-platform | high | 4 |
-| Agent Catalogue | harness-platform | high | 3 |
-| Solution & Agent Team Registry | harness-platform | medium | 3 |
-| Clarification Agent | harness-platform | high | 3 |
+All six land in `harness-platform-core`. From this wave on, the execution and control repositories are in maintenance.
+
+| Component | Module | Owner | Risk | Operations |
+| --- | --- | --- | --- | --- |
+| Governance Board | `governance/` | governance-office | critical | 3 |
+| Agent Team Registry | `governance/` | harness-platform | high | 4 |
+| Agent Deployment | `publication/` | harness-platform | critical | 4 |
+| Agent Catalogue | `publication/` | harness-platform | high | 3 |
+| Solution & Agent Team Registry | `intake/` | harness-platform | medium | 3 |
+| Clarification Agent | `intake/` | harness-platform | high | 3 |
 
 **Build order within the wave:** governance and the registry first — nothing may be published that leadership has not approved. Then `agent-deployment`, which is the component that carries the real weight here: it binds a package version to a business unit with an envelope, a ceiling, a risk tier, and a health state. Then the catalogue on top of it. `clarification-agent` last, and only because the nine-question interview can remain a form until abandonment rate becomes a real cost.
 
@@ -97,12 +141,14 @@ Through waves 1 and 2, stage 5 governance runs as a scheduled human review — a
 
 Four components. Roughly $40–120/month.
 
-| Component | Owner | Risk | Operations |
-| --- | --- | --- | --- |
-| Schedule Runner | harness-platform | high | 3 |
-| Outcome Ledger | harness-platform | medium | 5 |
-| Improvement Proposal | harness-platform | medium | 3 |
-| Team Lifecycle | harness-platform | medium | 3 |
+All four land in `harness-platform-core`.
+
+| Component | Module | Owner | Risk | Operations |
+| --- | --- | --- | --- | --- |
+| Schedule Runner | `publication/` | harness-platform | high | 3 |
+| Outcome Ledger | `learning/` | harness-platform | medium | 5 |
+| Improvement Proposal | `learning/` | harness-platform | medium | 3 |
+| Team Lifecycle | `learning/` | harness-platform | medium | 3 |
 
 `schedule-runner` is deliberately last among the runtime components. An attended run has a human already looking at the result — the cheapest oversight the platform will ever have — and scheduling removes it. Before it is safe you need health thresholds calibrated against real outcomes and automatic suspension that has been seen to work, and both come from running attended traffic first.
 
@@ -122,6 +168,8 @@ A component is done when all of the following hold. The generated implementation
 6. Its `human_accountable` role is named in the runbook, not just in the specification.
 7. Its telemetry lets `observability` report per-task cost for work it participates in.
 8. Its `open_questions` are answered, or explicitly re-deferred with a reason.
+9. It lives in the module named in its specification, exposes one public port, and ships a seam test that exercises only that port with collaborators injected.
+10. Every entry in its `consumes` is called through the provider's published operation — not a shared table, not a copy of the provider's types.
 
 ## What is not in scope
 
