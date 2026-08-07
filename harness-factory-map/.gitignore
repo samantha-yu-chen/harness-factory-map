@@ -10,3 +10,4 @@ coverage/
 
 # Windows download metadata should never enter the repository.
 *:Zone.Identifier
+.vercel

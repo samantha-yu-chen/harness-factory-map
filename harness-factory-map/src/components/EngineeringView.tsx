@@ -1,18 +1,25 @@
 import { useState, type CSSProperties } from 'react';
 import { StageFlow } from './StageFlow';
 import {
+  BACKING_LABELS,
   FACTORY_STAGES,
+  FORCING_FUNCTIONS,
   LEARNING_STAGE,
   PLATFORM_STAGE,
   RISK_RANK,
   RUNTIME_STAGES,
   SYSTEM_DOCUMENTS,
+  UNITS,
+  WAVES,
   WAVE_THEMES,
   componentsOf,
   entity,
   map,
+  moduleSlices,
   presentationFor,
   reusedBy,
+  unit,
+  unitName,
   usd,
 } from '../app/factoryModel';
 import type { GeneratedEntity, GeneratedStage } from '../types/specification';
@@ -46,7 +53,15 @@ function ComponentCard({ item, onSelect }: { item: GeneratedEntity; onSelect: (i
         <div><dt>Wave</dt><dd>{item.build_wave ?? '—'}</dd></div>
         <div><dt>Monthly</dt><dd>{item.cost ? `$${item.cost.monthly_usd_low}–${item.cost.monthly_usd_high}` : '—'}</dd></div>
       </dl>
-      <footer>{item.owner} · {item.human_accountable}</footer>
+      <footer>
+        {item.deployable_unit && (
+          <span className="ships-in">
+            <code>{unit(item.deployable_unit)?.repository ?? item.deployable_unit}</code>
+            <code>{item.module}/</code>
+          </span>
+        )}
+        <span>{item.owner} · {item.human_accountable}</span>
+      </footer>
     </button>
   );
 }
@@ -93,37 +108,129 @@ function StagePanel({ stage, onSelect }: { stage: GeneratedStage; onSelect: (ite
   );
 }
 
-function WavePanel({ onSelect }: { onSelect: (item: GeneratedEntity) => void }) {
+function ComponentChip({ item, onSelect }: { item: GeneratedEntity; onSelect: (item: GeneratedEntity) => void }) {
+  return (
+    <li>
+      <button type="button" onClick={() => onSelect(item)}>
+        <span className={`risk-dot risk-${item.risk}`} aria-hidden="true" />
+        {item.name}
+      </button>
+    </li>
+  );
+}
+
+function PlanCell({ unitId, wave, onSelect }: { unitId: string; wave: number; onSelect: (item: GeneratedEntity) => void }) {
+  const slices = moduleSlices(unitId, wave);
+  if (slices.length === 0) return <td className="plan-cell empty"><span>—</span></td>;
+  return (
+    <td className="plan-cell">
+      {slices.map((slice) => (
+        <div key={slice.module} className="plan-module">
+          <span className="module-tag">{slice.module}/</span>
+          <ul>
+            {slice.items
+              .slice()
+              .sort((left, right) => RISK_RANK[right.risk] - RISK_RANK[left.risk])
+              .map((item) => <ComponentChip key={item.id} item={item} onSelect={onSelect} />)}
+          </ul>
+        </div>
+      ))}
+    </td>
+  );
+}
+
+function BuildPlanPanel({ onSelect }: { onSelect: (item: GeneratedEntity) => void }) {
   return (
     <section className="panel">
       <div className="panel-head">
         <div>
-          <span className="kicker">Delivery sequence</span>
-          <h2>Build waves</h2>
+          <span className="kicker">Delivery sequence · what gets built where</span>
+          <h2>Build plan · {UNITS.length} repositories × {WAVES.length} waves</h2>
         </div>
-        <p className="panel-aside">Dependency-ordered. Waves 1 and 2 are the MVP; stage 5 governance runs as a manual leadership review until wave 3.</p>
+        <p className="panel-aside">
+          A row is a repository you clone. A cell is the directory you open in it that wave. Waves 1 and 2 are the
+          MVP; stage 5 governance runs as a manual leadership review until wave 3.
+        </p>
       </div>
-      <div className="wave-grid">
-        {map.cost.waves.map((wave) => (
-          <article key={wave.wave} className={`wave-card wave-${wave.wave}`}>
-            <header>
-              <span>Wave {wave.wave}</span>
-              <strong>{usd(wave.monthlyUsdLow)}–{usd(wave.monthlyUsdHigh)}/mo</strong>
-            </header>
-            <p>{WAVE_THEMES[wave.wave]}</p>
-            <ul>
-              {wave.componentIds
-                .map((id) => entity(id))
-                .filter((item): item is GeneratedEntity => !!item)
-                .sort((left, right) => RISK_RANK[right.risk] - RISK_RANK[left.risk])
-                .map((item) => (
-                  <li key={item.id}>
-                    <button type="button" onClick={() => onSelect(item)}>
-                      <span className={`risk-dot risk-${item.risk}`} aria-hidden="true" />
-                      {item.name}
-                    </button>
-                  </li>
+      <div className="plan-table-wrap">
+        <table className="plan-table">
+          <thead>
+            <tr>
+              <th className="plan-repo-head">Repository</th>
+              {WAVES.map((wave) => (
+                <th key={wave}>
+                  <span className="kicker">Wave {wave}</span>
+                  <small>{WAVE_THEMES[wave]}</small>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {UNITS.map((item) => (
+              <tr key={item.id}>
+                <th scope="row" className="plan-repo">
+                  <strong>{item.name}</strong>
+                  <code>{item.repository}</code>
+                  <span className={item.forcingFunction === 'host' ? 'ff host' : 'ff'}>
+                    {FORCING_FUNCTIONS[item.forcingFunction]}
+                  </span>
+                  <small>{item.componentIds.length} boundaries · {item.operationCount} operations · {usd(item.monthlyUsdLow)}–{usd(item.monthlyUsdHigh)}/mo</small>
+                </th>
+                {WAVES.map((wave) => (
+                  <PlanCell key={wave} unitId={item.id} wave={wave} onSelect={onSelect} />
                 ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function ContractPanel() {
+  const { contracts } = map;
+  return (
+    <section className="panel">
+      <div className="panel-head">
+        <div>
+          <span className="kicker">Cross-repository surface</span>
+          <h2>Contracts between repositories · {contracts.crossUnitCount}</h2>
+        </div>
+        <p className="panel-aside">
+          Every call that leaves a repository. {contracts.inUnitCount} more relationships stay inside one
+          repository and cost nothing to change. A consumer naming an operation its provider does not publish
+          fails generation, so a contract break shows up here rather than in production.
+        </p>
+      </div>
+      {contracts.gaps.length > 0 && (
+        <ul className="coverage-list contract-gaps">
+          {contracts.gaps.map((gap) => (
+            <li key={gap.id} className="gap">
+              <span className="coverage-mark" aria-hidden="true">!</span>
+              <span>{gap.sourceId} → {gap.targetId}</span>
+              <small>crosses {unitName(gap.sourceUnit)} → {unitName(gap.targetUnit)} with no declared contract</small>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="pair-grid">
+        {contracts.pairs.map((pair) => (
+          <article key={pair.id} className="pair-card">
+            <header>
+              <strong>{unitName(pair.sourceUnit)}</strong>
+              <span aria-hidden="true">→</span>
+              <strong>{unitName(pair.targetUnit)}</strong>
+              <em>{pair.links.length}</em>
+            </header>
+            <ul>
+              {pair.links.map((link) => (
+                <li key={link.id}>
+                  <span className="link-ends">{link.sourceId} → {link.targetId}</span>
+                  <span className={`backing backing-${link.backing}`}>{BACKING_LABELS[link.backing]}</span>
+                  <small>{[...link.operations, ...link.events].join(' · ') || 'no operation named'}</small>
+                </li>
+              ))}
             </ul>
           </article>
         ))}
@@ -243,7 +350,8 @@ export function EngineeringView({ onComponentSelect }: EngineeringViewProps) {
         ))}
       </section>
       {stage && <StagePanel stage={stage} onSelect={onComponentSelect} />}
-      <WavePanel onSelect={onComponentSelect} />
+      <BuildPlanPanel onSelect={onComponentSelect} />
+      <ContractPanel />
       <CoveragePanel />
       <AzurePanel />
       <SystemDocsPanel onSelect={onComponentSelect} />

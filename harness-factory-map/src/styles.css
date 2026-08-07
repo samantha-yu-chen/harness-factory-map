@@ -192,6 +192,48 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .risk-dot.risk-high { background: #c2410c; }
 .risk-dot.risk-critical { background: var(--danger); }
 
+/* ---------- build plan: repository x wave ---------- */
+.plan-table-wrap { overflow-x: auto; }
+.plan-table { border-collapse: separate; border-spacing: 0; min-width: 900px; width: 100%; }
+.plan-table thead th { border-bottom: 1px solid var(--line); padding: 0 10px 9px; text-align: left; vertical-align: bottom; }
+.plan-table thead th small { color: var(--ink-3); display: block; font-size: 0.62rem; line-height: 1.35; margin-top: 3px; max-width: 20ch; }
+.plan-table .plan-repo-head { color: var(--ink-3); font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase; width: 210px; }
+.plan-table tbody tr + tr th, .plan-table tbody tr + tr td { border-top: 1px solid var(--line-soft); }
+.plan-repo { padding: 12px 10px; text-align: left; vertical-align: top; }
+.plan-repo strong { display: block; font-size: 0.78rem; }
+.plan-repo code { background: var(--line-soft); border-radius: 4px; color: var(--ink-2); display: inline-block; font-size: 0.63rem; margin-top: 4px; padding: 1px 6px; }
+.plan-repo .ff { color: #be123c; display: block; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; margin-top: 5px; }
+.plan-repo .ff.host { color: var(--ink-3); font-weight: 700; }
+.plan-repo small { color: var(--ink-3); display: block; font-size: 0.61rem; line-height: 1.4; margin-top: 5px; }
+.plan-cell { padding: 12px 10px; vertical-align: top; }
+.plan-cell.empty span { color: var(--line); font-size: 0.85rem; }
+.plan-module + .plan-module { margin-top: 9px; }
+.module-tag { color: var(--ink-3); display: block; font-family: var(--mono, ui-monospace, monospace); font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; }
+.plan-module ul { display: grid; gap: 1px; list-style: none; margin: 3px 0 0; padding: 0; }
+.plan-module li button { align-items: center; background: transparent; border: 0; border-radius: 5px; color: var(--ink-2); cursor: pointer; display: flex; font-size: 0.69rem; padding: 3px 5px; text-align: left; width: 100%; }
+.plan-module li button:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- cross-repository contracts ---------- */
+.pair-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.pair-card { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; }
+.pair-card header { align-items: baseline; border-bottom: 1px solid var(--line-soft); display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 8px; }
+.pair-card header strong { font-size: 0.72rem; }
+.pair-card header span { color: var(--ink-3); }
+.pair-card header em { color: var(--ink-3); font-size: 0.6rem; font-style: normal; font-weight: 800; margin-left: auto; }
+.pair-card ul { display: grid; gap: 7px; list-style: none; margin: 9px 0 0; padding: 0; }
+.pair-card li { display: grid; gap: 3px; }
+.link-ends { color: var(--ink); font-size: 0.68rem; font-weight: 700; }
+.pair-card li small { color: var(--ink-3); font-size: 0.61rem; line-height: 1.4; word-break: break-word; }
+.backing { border-radius: 999px; font-size: 0.54rem; font-weight: 800; justify-self: start; letter-spacing: 0.05em; padding: 2px 7px; text-transform: uppercase; }
+.backing-declared { background: #eaf7ef; color: var(--ok); }
+.backing-event { background: #eef2ff; color: #4338ca; }
+.backing-inferred { background: #fdf6e7; color: #b45309; }
+.backing-none { background: #fdf3f4; color: var(--danger); }
+.contract-gaps { margin-bottom: 14px; }
+.ships-in { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+.ships-in code { background: var(--line-soft); border-radius: 4px; color: var(--ink-2); font-size: 0.6rem; padding: 1px 5px; }
+.component-card footer > span { display: block; }
+
 .wave-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .wave-card { background: #fff; border: 1px solid var(--line); border-radius: 11px; border-top: 3px solid var(--accent); padding: 13px 14px; }
 .wave-card.wave-3 { border-top-color: #7c3aed; }

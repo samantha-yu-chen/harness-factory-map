@@ -1,5 +1,11 @@
 import mapJson from '../generated/map.json';
-import type { GeneratedEntity, GeneratedMap, GeneratedStage } from '../types/specification';
+import type {
+  ContractBacking,
+  GeneratedEntity,
+  GeneratedMap,
+  GeneratedStage,
+  UnitRollup,
+} from '../types/specification';
 
 export const map = mapJson as GeneratedMap;
 
@@ -252,6 +258,58 @@ export const ADOPTION_CURVE: AdoptionPoint[] = [600, 2000, 5000].map((runs) => (
 export function usd(value: number): string {
   return `$${value.toLocaleString('en-US')}`;
 }
+
+export const UNITS = map.contracts.units;
+
+export const WAVES = map.cost.waves.map((wave) => wave.wave);
+
+const unitById = new Map(UNITS.map((unit) => [unit.id, unit]));
+
+export function unit(id: string): UnitRollup | undefined {
+  return unitById.get(id);
+}
+
+export function unitName(id: string): string {
+  return unitById.get(id)?.name ?? id;
+}
+
+export interface ModuleSlice {
+  module: string;
+  items: GeneratedEntity[];
+}
+
+// WHY: the question the harness team actually asks is "which repository am I opening this week,
+// and which directory inside it". Wave alone answers neither, so the plan is sliced by both.
+export function moduleSlices(unitId: string, wave: number): ModuleSlice[] {
+  const target = unitById.get(unitId);
+  if (!target) return [];
+  return target.modules
+    .map(({ module, componentIds }) => ({
+      module,
+      items: resolve(componentIds).filter((item) => item.build_wave === wave),
+    }))
+    .filter((slice) => slice.items.length > 0);
+}
+
+export function unitWaveCount(unitId: string, wave: number): number {
+  return moduleSlices(unitId, wave).reduce((total, slice) => total + slice.items.length, 0);
+}
+
+export const FORCING_FUNCTIONS: Record<string, string> = {
+  'FF1-independent-scaling': 'FF1 · independent scaling',
+  'FF2-team-scale': 'FF2 · team scale',
+  'FF3-fault-isolation': 'FF3 · fault isolation',
+  'FF4-regulatory-boundary': 'FF4 · regulatory boundary',
+  'FF5-polyglot-runtime': 'FF5 · polyglot runtime',
+  host: 'Host — no forcing function, so these stay modules',
+};
+
+export const BACKING_LABELS: Record<ContractBacking, string> = {
+  declared: 'declared',
+  event: 'event',
+  inferred: 'inferred only',
+  none: 'unbacked',
+};
 
 export const WAVE_THEMES: Record<number, string> = {
   1: 'Walking skeleton — one request runs end to end, reviewed and audited',

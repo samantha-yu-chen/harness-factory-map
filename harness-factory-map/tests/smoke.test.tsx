@@ -59,6 +59,70 @@ describe('generated map integrity', () => {
   });
 });
 
+describe('every buildable boundary has a home', () => {
+  const buildable = map.entities.filter((item) => item.build_wave !== undefined);
+
+  it('places each one in a repository and a module that repository declares', () => {
+    expect(buildable.length).toBeGreaterThan(20);
+    for (const item of buildable) {
+      const unit = map.contracts.units.find((entry) => entry.id === item.deployable_unit);
+      expect(unit, `${item.id} names no deployable unit`).toBeDefined();
+      expect(
+        unit?.modules.map((entry) => entry.module),
+        `${item.id} sits in a module ${item.deployable_unit} does not declare`,
+      ).toContain(item.module);
+    }
+  });
+
+  it('accounts for every buildable boundary exactly once across the units', () => {
+    const placed = map.contracts.units.flatMap((unit) => unit.componentIds);
+    expect(new Set(placed).size).toBe(placed.length);
+    expect(placed.sort()).toEqual(buildable.map((item) => item.id).sort());
+  });
+
+  it('names a forcing function for every unit, and only the host may decline one', () => {
+    for (const unit of map.contracts.units) {
+      expect(unit.repository, `${unit.id} has no repository`).toBeTruthy();
+      expect(unit.forcingFunction, `${unit.id} has no forcing function`).toBeTruthy();
+    }
+    expect(map.contracts.units.filter((unit) => unit.forcingFunction === 'host')).toHaveLength(1);
+  });
+});
+
+describe('contracts across repository boundaries', () => {
+  it('backs every cross-repository call with a declared operation or a paired event', () => {
+    expect(map.contracts.gaps).toEqual([]);
+    expect(map.contracts.crossUnitCount).toBeGreaterThan(0);
+    expect(map.contracts.backedCount).toBe(map.contracts.crossUnitCount);
+  });
+
+  it('resolves every consumed operation against what its provider publishes', () => {
+    for (const item of map.entities) {
+      for (const { from, operation } of item.consumes) {
+        const provider = entity(from);
+        expect(provider, `${item.id} consumes from unknown ${from}`).toBeDefined();
+        expect(
+          provider?.api_contract.map((entry) => entry.operation),
+          `${from} does not publish ${operation}`,
+        ).toContain(operation);
+      }
+    }
+  });
+
+  it('gives every consumed event an emitter, or declares it as coming from outside', () => {
+    const emitted = new Set(map.entities.flatMap((item) => item.events_emitted));
+    for (const item of map.entities) {
+      for (const event of item.events_consumed) {
+        expect(emitted.has(event), `${item.id} consumes unemitted ${event}`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps most relationships inside a repository, where they are free to change', () => {
+    expect(map.contracts.inUnitCount).toBeGreaterThan(map.contracts.crossUnitCount);
+  });
+});
+
 describe('component drawer', () => {
   afterEach(() => cleanup());
 

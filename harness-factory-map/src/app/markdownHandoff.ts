@@ -61,6 +61,16 @@ function acceptanceCriteria(entity: GeneratedEntity): string {
   ].join('\n');
 }
 
+function consumedSection(entity: GeneratedEntity): string {
+  if (entity.consumes.length === 0) {
+    return '\n## Contracts this depends on\n\n- Calls no other component through a declared operation.';
+  }
+  const rows = entity.consumes
+    .map(({ from, operation, note }) => `| ${from} | \`${operation}\` | ${note ?? ''} |`)
+    .join('\n');
+  return `\n## Contracts this depends on\n\nBreaking any of these upstream breaks this component. The map fails generation if one stops being published.\n\n| Provider | Operation | Why |\n| --- | --- | --- |\n${rows}`;
+}
+
 function header(entity: GeneratedEntity): string {
   return [
     `# Implementation brief — ${entity.name}`,
@@ -69,6 +79,8 @@ function header(entity: GeneratedEntity): string {
     '',
     `| | |`,
     `| --- | --- |`,
+    `| Repository | ${entity.deployable_unit ?? 'unplaced'} |`,
+    `| Module | ${entity.module ? `${entity.module}/` : 'unplaced'} |`,
     `| Delivery owner | ${entity.owner} |`,
     `| Accountable human | ${entity.human_accountable} |`,
     `| Build wave | ${entity.build_wave ?? 'unassigned'} |`,
@@ -86,7 +98,8 @@ export function buildEngineeringMarkdown(entity: GeneratedEntity): string {
     `\n## Purpose\n\n${entity.description}`,
     `\n## Boundary\n\n### Owns\n\n${list(entity.owns, 'Not specified')}\n\n### Does not own\n\n${list(entity.does_not_own, 'Not specified')}\n\n### Authoritative data\n\n${list(entity.data_owned, 'Owns no authoritative data')}`,
     `\n${contractSection(entity)}`,
-    `\n## Events\n\n### Emitted\n\n${list(entity.events_emitted, 'None')}\n\n### Consumed\n\n${list(entity.events_consumed, 'None')}`,
+    consumedSection(entity),
+    `\n## Events\n\n### Emitted\n\n${list(entity.events_emitted, 'None')}\n\n### Consumed\n\n${list(entity.events_consumed, 'None')}${entity.external_events_consumed.length > 0 ? `\n\n### Consumed from outside the platform\n\n${list(entity.external_events_consumed, 'None')}` : ''}`,
     `\n## Restrictions\n\n${list(entity.restrictions, 'None declared — clarify before implementation')}`,
     `\n## Failure behaviour\n\n${list(entity.failure_behaviour, 'None declared — define before implementation')}`,
     sloSection(entity),
