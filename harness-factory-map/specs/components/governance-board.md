@@ -15,6 +15,8 @@ business_value: Attaches a human name to every persistent capability the platfor
 owner: governance-office
 human_accountable: Leadership Team sponsor
 build_wave: 3
+deployable_unit: repo-platform-core
+module: governance
 workflow_id: stage-5-governance
 workflow_order: 1
 tags:
@@ -33,6 +35,13 @@ reference_map:
   - "Criterion: strategic fit"
   - "Criterion: risk & compliance"
   - NOT APPROVED — use Harness Agent Team or ticket system instead
+consumes:
+  - from: audit-log
+    operation: "GET /v1/audit/trace/{request_id}"
+    note: "A decision is made on the recorded evidence, not on a summary of it."
+  - from: team-orchestrator
+    operation: "POST /v1/runs/{run_id}/stop"
+    note: "Revoking an approval must stop work already in flight, not only future work."
 responsibilities:
   - Review a dedicated-team proposal against four named criteria
   - Record an approve or decline decision with explicit conditions

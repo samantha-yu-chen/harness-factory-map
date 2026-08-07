@@ -15,6 +15,8 @@ business_value: The mechanism by which the platform gets cheaper and better per 
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 4
+deployable_unit: repo-platform-core
+module: learning
 workflow_id: stage-7-learning
 workflow_order: 2
 tags:
@@ -32,6 +34,13 @@ connects_to:
 reference_map:
   - Improve knowledge & workflows
   - Update templates, policies & agents
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: agent-package
+    operation: "POST /v1/packages"
+    note: "An approved proposal becomes a new package version, never an edit in place."
 responsibilities:
   - Raise a proposal from evidence, naming the change and the expected effect
   - Route each proposal to the approver its target requires

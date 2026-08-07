@@ -15,6 +15,8 @@ business_value: Reuse is the only compounding cost saving in an agent platform. 
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 3
+deployable_unit: repo-platform-core
+module: intake
 workflow_id: stage-2-system-check
 workflow_order: 1
 tags:
@@ -34,6 +36,13 @@ reference_map:
   - YES — route to existing solution
   - NO — continue to problem intake
   - Go to Harness Agent Team
+consumes:
+  - from: team-orchestrator
+    operation: "POST /v1/runs"
+    note: "A confident reuse match starts a run directly rather than re-entering intake."
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Maintain a searchable capability description for every approved solution and registered team
   - Match an incoming request against the catalogue and score confidence

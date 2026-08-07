@@ -15,6 +15,8 @@ business_value: Retirement is the discipline that stops an agent platform accumu
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 4
+deployable_unit: repo-platform-core
+module: learning
 workflow_id: stage-7-learning
 workflow_order: 3
 tags:
@@ -30,6 +32,10 @@ connects_to:
 reference_map:
   - Retire / scale agent teams
   - Every execution makes the system smarter
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Track every registered team's review date and raise the review
   - Assemble the evidence pack a reviewer needs

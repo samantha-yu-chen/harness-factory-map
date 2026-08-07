@@ -15,6 +15,8 @@ business_value: Agent runs are long, expensive, and interruptible. Deterministic
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-execution
+module: orchestration
 workflow_id: stage-6-execution
 workflow_order: 1
 tags:
@@ -38,6 +40,28 @@ serves_stages:
   - stage-10-execute
 reference_map:
   - Harness Agent Team executes the work end to end
+consumes:
+  - from: identity-access
+    operation: "POST /v1/identity/task-token"
+    note: "A scoped, expiring token per task; the orchestrator is the only caller permitted to mint one."
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: policy-engine
+    operation: "POST /v1/policy/decisions"
+    note: "The decision that authorises the whole run."
+  - from: task-contract
+    operation: "GET /v1/contracts/{contract_id}"
+    note: "The signed statement of what the run is for."
+  - from: agent-deployment
+    operation: "GET /v1/deployments/{deployment_id}/envelope"
+    note: "Runtime runs read their deployment envelope before starting."
+  - from: outcome-delivery
+    operation: "POST /v1/deliveries"
+    note: "Hands a finished run to delivery rather than returning it directly."
+  - from: sandbox
+    operation: "POST /v1/sandbox/sessions"
+    note: "Opens the bounded session a step executes inside."
 responsibilities:
   - Own the authoritative execution state machine for every task
   - Sequence the seven steps and enforce that none is skipped

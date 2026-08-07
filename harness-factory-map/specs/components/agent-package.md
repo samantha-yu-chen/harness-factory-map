@@ -15,6 +15,8 @@ business_value: Without versioned packages, a team's behaviour changes silently 
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 2
+deployable_unit: repo-execution
+module: runtime
 workflow_id: stage-6-execution
 workflow_order: 5
 tags:
@@ -33,6 +35,13 @@ connects_to:
 serves_stages:
   - stage-10-execute
 reference_map: []
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: tool-gateway
+    operation: "GET /v1/tools/catalogue"
+    note: "A package may only name tools the gateway actually publishes."
 responsibilities:
   - Expose evaluation results so agent-deployment can refuse to promote a version that did not pass
   - Declare roles, system prompts, allowed tools, model tier per step, and memory references

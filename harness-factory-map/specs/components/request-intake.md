@@ -15,6 +15,8 @@ business_value: One front door is what makes demand measurable. Without it there
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-platform-core
+module: intake
 workflow_id: stage-1-request
 workflow_order: 1
 tags:
@@ -34,6 +36,13 @@ reference_map:
   - Chat channel
   - Email channel
   - Direct execution path
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: identity-access
+    operation: "POST /v1/identity/introspect"
+    note: "Resolves the caller principal on every call; scope is never inferred from a previous one."
 responsibilities:
   - Accept requests from portal, chat, and email adapters
   - Normalise every channel payload to one internal request shape

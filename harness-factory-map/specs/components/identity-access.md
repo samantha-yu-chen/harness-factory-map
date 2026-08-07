@@ -15,6 +15,8 @@ business_value: Every audit, incident review, and compliance conversation about 
 owner: platform-security
 human_accountable: Chief Information Security Officer
 build_wave: 1
+deployable_unit: repo-identity
+module: identity
 workflow_id: stage-0-enterprise-brain
 workflow_order: 3
 tags:
@@ -75,6 +77,16 @@ api_contract:
     timeout: 3s
     auth: "Workload identity; only the orchestrator's identity may call this"
     failure: "403 when the requested scopes exceed the policy decision; 409 when the policy decision is revoked; never issues an unexpiring or unscoped token"
+  - operation: "POST /v1/identity/introspect"
+    kind: sync-api
+    caller: tool-gateway, request-intake, schedule-runner, agent-catalogue
+    worker: identity-access
+    request: "{ token }"
+    response: "200 { active: boolean, principal, on_behalf_of_upn, granted_scopes[], expires_at, task_id? }"
+    idempotency: "Read-only; the same token returns the same answer until it expires or is revoked"
+    timeout: 1s
+    auth: "Workload identity; a caller may introspect only tokens in its own audience"
+    failure: "An unreachable directory or revocation store returns active false; an inconclusive answer is never reported as active"
   - operation: "POST /v1/identity/revoke"
     kind: sync-api
     caller: budget-guard, human-review-gate, agent-team-registry

@@ -15,6 +15,8 @@ business_value: This is the component that produces the value, and the component
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-execution
+module: runtime
 workflow_id: stage-6-execution
 workflow_order: 2
 tags:
@@ -37,6 +39,19 @@ reference_map:
   - Research
   - Plan
   - Execute
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: observability
+    operation: "otlp.export"
+    note: "Spans and metrics for every step, exported rather than stored locally."
+  - from: retrieval-service
+    operation: "POST /v1/retrieval/query"
+    note: "Grounding, with citations, on every step that needs context."
+  - from: tool-gateway
+    operation: "POST /v1/tools/invoke"
+    note: "The only way this component touches an external system."
 responsibilities:
   - Run one agent role for one step, against the approved contract
   - Ground its work through the retrieval service and cite what it used

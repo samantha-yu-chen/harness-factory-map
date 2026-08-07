@@ -15,6 +15,8 @@ business_value: This is where the platform's value is actually collected. An age
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 3
+deployable_unit: repo-platform-core
+module: publication
 workflow_id: stage-8-trigger
 workflow_order: 1
 tags:
@@ -33,6 +35,16 @@ connects_to:
   - outcome-delivery
   - audit-log
 reference_map: []
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: identity-access
+    operation: "POST /v1/identity/introspect"
+    note: "Resolves the caller principal on every call; scope is never inferred from a previous one."
+  - from: policy-engine
+    operation: "POST /v1/policy/invocations"
+    note: "Every invocation from the catalogue is authorised before a run is created."
 responsibilities:
   - Show each entitled caller the deployments they may run, with purpose, declared inputs, cost per run, owner, version, and recent reliability
   - Accept a parameterised invocation and validate it against the deployment's declared inputs

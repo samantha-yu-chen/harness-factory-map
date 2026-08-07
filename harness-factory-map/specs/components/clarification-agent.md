@@ -15,6 +15,8 @@ business_value: A specification caught here costs a conversation. The same gap c
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 3
+deployable_unit: repo-platform-core
+module: intake
 workflow_id: stage-3-problem-intake
 workflow_order: 1
 tags:
@@ -29,6 +31,10 @@ connects_to:
   - audit-log
 reference_map:
   - Structured clarification (grill-me) question set
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Ask all nine mandatory questions, in order, every time
   - Ground its follow-ups in approved enterprise knowledge with citations

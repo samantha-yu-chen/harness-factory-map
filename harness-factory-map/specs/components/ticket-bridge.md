@@ -15,6 +15,8 @@ business_value: The cheapest execution route in the platform. Every request that
 owner: harness-platform
 human_accountable: Head of Service Management
 build_wave: 2
+deployable_unit: repo-platform-core
+module: intake
 workflow_id: stage-4-evaluate
 workflow_order: 2
 tags:
@@ -28,6 +30,10 @@ connects_to:
   - audit-log
 reference_map:
   - "Route: log to ticket system (simple / low complexity)"
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Create a ticket in the enterprise service desk from a classified contract
   - Map platform fields to the service desk's own schema

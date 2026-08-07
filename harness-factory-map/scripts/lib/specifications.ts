@@ -5,13 +5,20 @@ import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js';
 import schema from '../../schemas/spec.schema.json';
 import type {
   AzureServiceRollup,
+  ContractBacking,
+  ContractReport,
   CostRollup,
   CoverageReport,
+  CrossUnitLink,
   EdgeRelation,
+  GeneratedEdge,
   GeneratedEntity,
   GeneratedMap,
   GeneratedStage,
+  ModuleRollup,
   SpecificationMetadata,
+  UnitPairRollup,
+  UnitRollup,
   WaveRollup,
 } from '../../src/types/specification';
 
@@ -50,6 +57,9 @@ const arrayFields = [
   'api_contract',
   'events_emitted',
   'events_consumed',
+  'external_events_consumed',
+  'consumes',
+  'modules',
 ] as const;
 
 const ajv = new Ajv2020({ allErrors: true, useDefaults: true, strict: false });
@@ -265,6 +275,87 @@ function validateReferenceClaims(specifications: ParsedFile[]): void {
   }
 }
 
+function unitSpecifications(specifications: ParsedFile[]): ParsedFile[] {
+  return specifications.filter(({ metadata }) => metadata.entity_type === 'deployable-unit');
+}
+
+function assertUnitShape({ metadata, sourcePath }: ParsedFile): void {
+  if (metadata.entity_type !== 'deployable-unit') return;
+  if (typeof metadata.repository !== 'string') {
+    throw new SpecificationError(`${sourcePath}: a deployable-unit requires a repository`);
+  }
+  if (metadata.forcing_function === undefined) {
+    throw new SpecificationError(
+      `${sourcePath}: a deployable-unit requires a forcing_function — absent one, this is a module`,
+    );
+  }
+  if (metadata.modules.length === 0) {
+    throw new SpecificationError(`${sourcePath}: a deployable-unit requires at least one module`);
+  }
+}
+
+// WHY: build_wave means somebody is going to write this. They cannot start without knowing which
+// repository it lands in, so the two facts are validated together rather than as a nice-to-have.
+function assertPlacement({ metadata, sourcePath }: ParsedFile, units: Map<string, string[]>): void {
+  if (metadata.build_wave === undefined) return;
+  const unit = metadata.deployable_unit;
+  if (unit === undefined || metadata.module === undefined) {
+    throw new SpecificationError(`${sourcePath}: a build_wave requires deployable_unit and module`);
+  }
+  const modules = units.get(unit);
+  if (modules === undefined) {
+    throw new SpecificationError(`${sourcePath}: deployable_unit "${unit}" is not a deployable-unit specification`);
+  }
+  if (!modules.includes(metadata.module)) {
+    throw new SpecificationError(`${sourcePath}: module "${metadata.module}" is not declared by ${unit}`);
+  }
+}
+
+function validateUnitPlacement(specifications: ParsedFile[]): void {
+  for (const specification of specifications) assertUnitShape(specification);
+  const units = new Map(
+    unitSpecifications(specifications).map(({ metadata }) => [metadata.id, metadata.modules]),
+  );
+  for (const specification of specifications) assertPlacement(specification, units);
+}
+
+// WHY: a consumer naming an operation its provider does not publish is the exact failure that a
+// repository split hides until runtime. Failing generation is what makes the split affordable.
+function validateConsumedOperations(specifications: ParsedFile[]): void {
+  const published = new Map(
+    specifications.map(({ metadata }) => [metadata.id, metadata.api_contract.map((entry) => entry.operation)]),
+  );
+  for (const { metadata, sourcePath } of specifications) {
+    for (const { from, operation } of metadata.consumes) {
+      const operations = published.get(from);
+      if (operations === undefined) {
+        throw new SpecificationError(`${sourcePath}: consumes names unknown provider "${from}"`);
+      }
+      if (!operations.includes(operation)) {
+        throw new SpecificationError(`${sourcePath}: ${from} does not publish operation "${operation}"`);
+      }
+    }
+  }
+}
+
+function emittedEvents(specifications: ParsedFile[]): Set<string> {
+  const emitted = new Set<string>();
+  for (const { metadata } of specifications) for (const event of metadata.events_emitted) emitted.add(event);
+  return emitted;
+}
+
+function validateEventPairing(specifications: ParsedFile[]): void {
+  const emitted = emittedEvents(specifications);
+  for (const { metadata, sourcePath } of specifications) {
+    for (const event of metadata.events_consumed) {
+      if (emitted.has(event)) continue;
+      throw new SpecificationError(
+        `${sourcePath}: consumes event "${event}" that nothing emits — declare it under external_events_consumed if it originates outside the platform`,
+      );
+    }
+  }
+}
+
 function validateSpecifications(specifications: ParsedFile[]): void {
   const knownIds = new Set<string>();
   for (const { metadata, sourcePath } of specifications) {
@@ -278,6 +369,9 @@ function validateSpecifications(specifications: ParsedFile[]): void {
   validateStageOrdering(specifications);
   validateSingleDataOwner(specifications);
   validateReferenceClaims(specifications);
+  validateUnitPlacement(specifications);
+  validateConsumedOperations(specifications);
+  validateEventPairing(specifications);
 }
 
 function memberIds(specifications: ParsedFile[], stageId: string): string[] {
@@ -330,6 +424,122 @@ function buildCoverage(stages: GeneratedStage[]): CoverageReport {
     .filter(({ entry }) => entry.coveredBy.length === 0)
     .map(({ stage, entry }) => ({ stageId: stage.id, stageName: stage.name, element: entry.element }));
   return { elementCount: elements.length, coveredCount: elements.length - gaps.length, gaps };
+}
+
+function membersOfUnit(specifications: ParsedFile[], unitId: string): ParsedFile[] {
+  return specifications.filter(({ metadata }) => metadata.deployable_unit === unitId);
+}
+
+function rollupModules(members: ParsedFile[], modules: string[]): ModuleRollup[] {
+  return modules.map((module) => ({
+    module,
+    componentIds: members
+      .filter(({ metadata }) => metadata.module === module)
+      .sort((left, right) => (left.metadata.build_wave ?? 0) - (right.metadata.build_wave ?? 0))
+      .map(({ metadata }) => metadata.id),
+  }));
+}
+
+function sumOver(members: ParsedFile[], read: (metadata: SpecificationMetadata) => number): number {
+  return members.reduce((total, { metadata }) => total + read(metadata), 0);
+}
+
+function rollupUnit(specifications: ParsedFile[], unit: ParsedFile): UnitRollup {
+  const members = membersOfUnit(specifications, unit.metadata.id);
+  return {
+    id: unit.metadata.id,
+    name: unit.metadata.name,
+    repository: unit.metadata.repository ?? unit.metadata.id,
+    forcingFunction: unit.metadata.forcing_function ?? 'host',
+    description: unit.metadata.description,
+    execSummary: unit.metadata.exec_summary,
+    sourcePath: unit.sourcePath,
+    modules: rollupModules(members, unit.metadata.modules),
+    componentIds: members.map(({ metadata }) => metadata.id).sort(),
+    waves: [...new Set(members.map(({ metadata }) => metadata.build_wave ?? 0))].sort(),
+    operationCount: sumOver(members, (metadata) => metadata.api_contract.length),
+    monthlyUsdLow: round(sumOver(members, (metadata) => metadata.cost?.monthly_usd_low ?? 0)),
+    monthlyUsdHigh: round(sumOver(members, (metadata) => metadata.cost?.monthly_usd_high ?? 0)),
+  };
+}
+
+function declaredOperations(source: SpecificationMetadata, target: SpecificationMetadata): string[] {
+  const outbound = source.consumes.filter((entry) => entry.from === target.id);
+  const inbound = target.consumes.filter((entry) => entry.from === source.id);
+  return [...outbound, ...inbound].map((entry) => `${entry.from} · ${entry.operation}`).sort();
+}
+
+function sharedEvents(source: SpecificationMetadata, target: SpecificationMetadata): string[] {
+  const forward = source.events_emitted.filter((event) => target.events_consumed.includes(event));
+  const backward = target.events_emitted.filter((event) => source.events_consumed.includes(event));
+  return [...new Set([...forward, ...backward])].sort();
+}
+
+// WHY: most existing contracts name their caller in prose rather than through a consumes entry.
+// Reporting those as inferred keeps the map honest about which pairings are actually machine-checked.
+function inferredOperations(source: SpecificationMetadata, target: SpecificationMetadata): string[] {
+  return target.api_contract
+    .filter((entry) => entry.caller.includes(source.id))
+    .map((entry) => `${target.id} · ${entry.operation}`)
+    .sort();
+}
+
+function backingOf(operations: string[], events: string[], inferred: string[]): ContractBacking {
+  if (operations.length > 0) return 'declared';
+  if (events.length > 0) return 'event';
+  if (inferred.length > 0) return 'inferred';
+  return 'none';
+}
+
+function linkFor(edge: GeneratedEdge, source: ParsedFile, target: ParsedFile): CrossUnitLink {
+  const operations = declaredOperations(source.metadata, target.metadata);
+  const events = sharedEvents(source.metadata, target.metadata);
+  const inferred = inferredOperations(source.metadata, target.metadata);
+  return {
+    id: edge.id,
+    sourceUnit: source.metadata.deployable_unit ?? '',
+    targetUnit: target.metadata.deployable_unit ?? '',
+    sourceId: source.metadata.id,
+    targetId: target.metadata.id,
+    backing: backingOf(operations, events, inferred),
+    operations: operations.length > 0 ? operations : inferred,
+    events,
+  };
+}
+
+function rollupPairs(links: CrossUnitLink[]): UnitPairRollup[] {
+  const pairs = new Map<string, UnitPairRollup>();
+  for (const link of links) {
+    const id = `${link.sourceUnit}->${link.targetUnit}`;
+    const pair = pairs.get(id) ?? { id, sourceUnit: link.sourceUnit, targetUnit: link.targetUnit, links: [] };
+    pair.links.push(link);
+    pairs.set(id, pair);
+  }
+  return [...pairs.values()].sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function buildContracts(specifications: ParsedFile[], edges: GeneratedEdge[]): ContractReport {
+  const placed = new Map(
+    specifications.filter(({ metadata }) => metadata.deployable_unit).map((file) => [file.metadata.id, file]),
+  );
+  const links: CrossUnitLink[] = [];
+  let inUnitCount = 0;
+  for (const edge of edges) {
+    if (!edge.relations.some((relation) => relation !== 'workflow')) continue;
+    const source = placed.get(edge.source);
+    const target = placed.get(edge.target);
+    if (!source || !target) continue;
+    if (source.metadata.deployable_unit === target.metadata.deployable_unit) inUnitCount += 1;
+    else links.push(linkFor(edge, source, target));
+  }
+  return {
+    units: unitSpecifications(specifications).map((unit) => rollupUnit(specifications, unit)),
+    pairs: rollupPairs(links),
+    crossUnitCount: links.length,
+    inUnitCount,
+    backedCount: links.filter((link) => link.backing === 'declared' || link.backing === 'event').length,
+    gaps: links.filter((link) => link.backing === 'none'),
+  };
 }
 
 function rollupAzure(specifications: ParsedFile[]): AzureServiceRollup[] {
@@ -434,6 +644,7 @@ export function buildMap(specifications: ParsedFile[], schemaId = schema.$id): G
   const coverage = buildCoverage(stages);
   const edges = buildEdges(specifications, stages);
   const entities = buildEntities(specifications);
+  const contracts = buildContracts(specifications, edges);
 
   return {
     generatedHeader: GENERATED_HEADER,
@@ -442,12 +653,14 @@ export function buildMap(specifications: ParsedFile[], schemaId = schema.$id): G
     edges,
     stages,
     coverage,
+    contracts,
     cost: buildCost(specifications),
     validation: {
       entityCount: entities.length,
       edgeCount: edges.length,
       stageCount: stages.length,
       coverageGapCount: coverage.gaps.length,
+      contractGapCount: contracts.gaps.length,
     },
   };
 }

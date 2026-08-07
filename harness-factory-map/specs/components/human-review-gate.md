@@ -15,6 +15,8 @@ business_value: Human accountability is the platform's licence to operate. This 
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-platform-core
+module: assurance
 workflow_id: stage-6-execution
 workflow_order: 7
 tags:
@@ -33,6 +35,13 @@ serves_stages:
   - stage-11-deliver
 reference_map:
   - Review (human in the loop)
+consumes:
+  - from: audit-log
+    operation: "GET /v1/audit/trace/{request_id}"
+    note: "A reviewer sees the full trace behind the work they are signing off."
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "The review verdict itself is recorded before it takes effect."
 responsibilities:
   - Apply the review requirement from the deployment risk tier, for production runs
   - Route a result to the reviewer required by its risk tier

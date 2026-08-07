@@ -15,6 +15,8 @@ business_value: Model spend is the platform's dominant and most volatile cost. T
 owner: harness-platform
 human_accountable: Financial Controller
 build_wave: 2
+deployable_unit: repo-platform-core
+module: governance
 workflow_id: stage-5-governance
 workflow_order: 3
 tags:
@@ -35,6 +37,13 @@ serves_stages:
 reference_map:
   - "Criterion: value & ROI"
   - "Criterion: resourcing & ownership"
+consumes:
+  - from: identity-access
+    operation: "POST /v1/identity/revoke"
+    note: "A breached ceiling revokes the grants that are still spending."
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Enforce a deployment monthly ceiling in addition to the per-run cap
   - Reserve a spending envelope before a task starts

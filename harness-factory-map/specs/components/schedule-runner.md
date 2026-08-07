@@ -15,6 +15,8 @@ business_value: Recurring work is where an agent stops costing attention entirel
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 4
+deployable_unit: repo-platform-core
+module: publication
 workflow_id: stage-8-trigger
 workflow_order: 2
 tags:
@@ -30,6 +32,13 @@ connects_to:
   - outcome-delivery
   - audit-log
 reference_map: []
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: identity-access
+    operation: "POST /v1/identity/introspect"
+    note: "Resolves the caller principal on every call; scope is never inferred from a previous one."
 responsibilities:
   - Hold schedule definitions with their target deployment, fixed parameters, and service principal
   - Fire each window exactly once through the catalogue's invocation endpoint

@@ -15,6 +15,8 @@ business_value: Every side effect this platform has on the business passes throu
 owner: platform-security
 human_accountable: Chief Information Security Officer
 build_wave: 1
+deployable_unit: repo-execution
+module: egress
 workflow_id: stage-6-execution
 workflow_order: 3
 tags:
@@ -31,6 +33,16 @@ connects_to:
 serves_stages:
   - stage-10-execute
 reference_map: []
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: observability
+    operation: "otlp.export"
+    note: "Spans and metrics for every step, exported rather than stored locally."
+  - from: identity-access
+    operation: "POST /v1/identity/introspect"
+    note: "Resolves the caller principal on every call; scope is never inferred from a previous one."
 responsibilities:
   - Expose an allow-listed catalogue of typed tool operations
   - Check every call against the policy engine before executing it

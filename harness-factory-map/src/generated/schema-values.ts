@@ -1,6 +1,6 @@
 // GENERATED FILE — DO NOT EDIT MANUALLY. Regenerate with `npm run generate`.
 
-export const ENTITY_TYPES = ["actor","component","artifact","decision","external-system","workflow-step"] as const;
+export const ENTITY_TYPES = ["actor","component","artifact","decision","deployable-unit","external-system","workflow-step"] as const;
 
 export const PLANES = ["request","knowledge","control","governance","execution","assurance","learning","external"] as const;
 

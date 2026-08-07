@@ -15,6 +15,8 @@ business_value: This is the platform's cost control point. Route discipline here
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-platform-core
+module: intake
 workflow_id: stage-4-evaluate
 workflow_order: 1
 tags:
@@ -35,6 +37,10 @@ reference_map:
   - Recommend path
   - "Route: handle via Harness Agent Team (one-time or complex)"
   - "Route: propose dedicated agent team (repeatable & high value)"
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Score risk, complexity, value, and repeatability independently
   - Apply the deterministic routing rules to those four scores

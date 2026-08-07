@@ -15,6 +15,8 @@ business_value: Isolation is what makes it acceptable to let a model run code at
 owner: platform-security
 human_accountable: Chief Information Security Officer
 build_wave: 1
+deployable_unit: repo-execution
+module: isolation
 workflow_id: stage-6-execution
 workflow_order: 4
 tags:
@@ -30,6 +32,13 @@ connects_to:
 serves_stages:
   - stage-10-execute
 reference_map: []
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: observability
+    operation: "otlp.export"
+    note: "Spans and metrics for every step, exported rather than stored locally."
 responsibilities:
   - Provide a fresh, isolated environment per step
   - Restrict egress to the tool gateway only

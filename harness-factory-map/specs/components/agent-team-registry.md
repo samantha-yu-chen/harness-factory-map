@@ -15,6 +15,8 @@ business_value: An agent team that is not registered cannot be monitored, budget
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 3
+deployable_unit: repo-platform-core
+module: governance
 workflow_id: stage-5-governance
 workflow_order: 2
 tags:
@@ -33,6 +35,16 @@ connects_to:
   - audit-log
 reference_map:
   - APPROVED — spin up dedicated agent team (registered, monitored, governed)
+consumes:
+  - from: identity-access
+    operation: "POST /v1/identity/revoke"
+    note: "Suspending a team must invalidate its in-flight grants, not just future ones."
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: agent-package
+    operation: "GET /v1/packages/{package_id}/versions/{version}"
+    note: "Registration pins an exact package version."
 responsibilities:
   - Hand a registered team to agent-deployment for binding to a package version and a business unit
   - Register a team only against an approved governance decision

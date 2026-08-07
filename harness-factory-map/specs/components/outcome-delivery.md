@@ -15,6 +15,8 @@ business_value: The requester's experience of the whole platform is this one mom
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-platform-core
+module: assurance
 workflow_id: stage-6-execution
 workflow_order: 8
 tags:
@@ -32,6 +34,13 @@ serves_stages:
   - stage-11-deliver
 reference_map:
   - Deliver outcome & log decision
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: team-orchestrator
+    operation: "GET /v1/runs/{run_id}"
+    note: "Reads the completed run it is delivering."
 responsibilities:
   - Publish the reviewed outcome and its artifacts to the requester's channel
   - Attach evidence, citations, cost, and the package version used

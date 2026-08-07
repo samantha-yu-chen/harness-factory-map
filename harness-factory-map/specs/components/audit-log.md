@@ -15,6 +15,8 @@ business_value: This is the artefact that makes the platform defensible to audit
 owner: platform-security
 human_accountable: Chief Risk Officer
 build_wave: 1
+deployable_unit: repo-identity
+module: audit
 workflow_id: stage-0-enterprise-brain
 workflow_order: 4
 tags:

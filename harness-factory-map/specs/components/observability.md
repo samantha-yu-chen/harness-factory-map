@@ -15,6 +15,8 @@ business_value: An agent platform without per-task cost and latency telemetry ca
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 1
+deployable_unit: repo-platform-core
+module: assurance
 workflow_id: stage-0-enterprise-brain
 workflow_order: 5
 tags:
@@ -99,6 +101,7 @@ events_emitted:
   - telemetry.alert.raised
   - telemetry.cost.anomaly
   - telemetry.ingest.shedding
+  - deployment.health.degraded
 events_consumed: []
 slo:
   availability: "99% — deliberately lower than audit-log, because losing telemetry must never stop work"

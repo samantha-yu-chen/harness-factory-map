@@ -15,6 +15,8 @@ business_value: Governance decisions are made quarterly by people. This is what 
 owner: platform-security
 human_accountable: Chief Information Security Officer
 build_wave: 2
+deployable_unit: repo-identity
+module: policy
 workflow_id: stage-5-governance
 workflow_order: 4
 tags:
@@ -34,6 +36,10 @@ connects_to:
 serves_stages:
   - stage-9-authorise
 reference_map: []
+consumes:
+  - from: agent-deployment
+    operation: "GET /v1/deployments/{deployment_id}/envelope"
+    note: "The envelope bounds what a published agent may be permitted to do."
 responsibilities:
   - Authorise each production invocation against the deployment envelope intersected with the caller entitlements
   - Evaluate versioned policy rules against a concrete request

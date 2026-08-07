@@ -15,6 +15,8 @@ business_value: This is the evidence base for every funding, scaling, and retire
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 4
+deployable_unit: repo-platform-core
+module: learning
 workflow_id: stage-7-learning
 workflow_order: 1
 tags:
@@ -36,6 +38,10 @@ reference_map:
   - Capture insights & feedback
   - Record learnings & outcomes
   - Measure impact & performance
+consumes:
+  - from: audit-log
+    operation: "GET /v1/audit/trace/{request_id}"
+    note: "Reconstructs what happened from the evidence trail rather than from its own memory."
 responsibilities:
   - Record every production run against its deployment, business unit, and package version
   - Record every delivered outcome with its cost, evidence, and verdicts

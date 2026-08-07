@@ -15,6 +15,8 @@ business_value: Grounded, cited answers are the difference between an agent a co
 owner: data-platform
 human_accountable: Chief Data Officer
 build_wave: 2
+deployable_unit: repo-platform-core
+module: knowledge
 workflow_id: stage-0-enterprise-brain
 workflow_order: 2
 tags:
@@ -33,6 +35,13 @@ serves_stages:
   - stage-10-execute
 reference_map:
   - Governed access, approved knowledge
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: identity-access
+    operation: "GET /v1/identity/access-filter"
+    note: "Permission filter applied before retrieval, not after."
 responsibilities:
   - Answer a retrieval query with ranked, cited passages
   - Apply the caller's access filter before ranking, never after

@@ -15,6 +15,8 @@ business_value: Turns ten scattered document estates into one governed corpus th
 owner: data-platform
 human_accountable: Chief Data Officer
 build_wave: 2
+deployable_unit: repo-platform-core
+module: knowledge
 workflow_id: stage-0-enterprise-brain
 workflow_order: 1
 tags:
@@ -37,6 +39,13 @@ reference_map:
   - Decision & Audit History
   - Data & Systems
   - Risk & Controls
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: identity-access
+    operation: "GET /v1/identity/access-filter"
+    note: "Source permissions captured at ingest so the index cannot outlive them."
 responsibilities:
   - Accept a document only from its declared data owner
   - Attach owner, version, effective date, classification, and retention to every document
@@ -107,7 +116,8 @@ events_emitted:
   - knowledge.document.withdrawn
   - knowledge.index.rebuilt
   - knowledge.index.build_failed
-events_consumed:
+events_consumed: []
+external_events_consumed:
   - source.document.changed
 slo:
   availability: "99.5% for publication; indexing is asynchronous"

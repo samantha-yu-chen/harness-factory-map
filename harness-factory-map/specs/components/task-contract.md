@@ -15,6 +15,8 @@ business_value: Every downstream control — permissions, evaluation, acceptance
 owner: harness-platform
 human_accountable: The named decision owner on each contract
 build_wave: 1
+deployable_unit: repo-platform-core
+module: intake
 workflow_id: stage-3-problem-intake
 workflow_order: 2
 tags:
@@ -31,6 +33,10 @@ connects_to:
   - audit-log
 reference_map:
   - Bounded problem statement captured
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Hold the nine intake answers as structured, versioned fields
   - Carry explicit, testable success criteria

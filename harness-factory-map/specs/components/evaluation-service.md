@@ -15,6 +15,8 @@ business_value: Reviewer time is the platform's scarcest resource. Every defect 
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 2
+deployable_unit: repo-platform-core
+module: assurance
 workflow_id: stage-6-execution
 workflow_order: 6
 tags:
@@ -33,6 +35,10 @@ serves_stages:
   - stage-10-execute
 reference_map:
   - Validate
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
 responsibilities:
   - Run deterministic checks against the contract's success criteria
   - Apply model-based judgement only for criteria no deterministic check can cover

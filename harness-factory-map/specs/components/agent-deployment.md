@@ -15,6 +15,8 @@ business_value: Without this, "we have an approved agent" and "an agent is runni
 owner: harness-platform
 human_accountable: Head of Platform Engineering
 build_wave: 3
+deployable_unit: repo-platform-core
+module: publication
 workflow_id: stage-9-authorise
 workflow_order: 1
 tags:
@@ -36,6 +38,13 @@ connects_to:
   - team-lifecycle
   - audit-log
 reference_map: []
+consumes:
+  - from: audit-log
+    operation: "POST /v1/audit/records"
+    note: "Every material decision this component makes is recorded before it is acted on."
+  - from: agent-package
+    operation: "GET /v1/packages/{package_id}/versions/{version}"
+    note: "A deployment resolves the immutable version it publishes."
 responsibilities:
   - Bind exactly one package version to one business unit as the live deployment
   - Hold the runtime envelope — tools, data domains, systems, risk tier, run cap, monthly ceiling
