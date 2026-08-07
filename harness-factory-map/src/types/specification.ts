@@ -35,6 +35,20 @@ export interface ApiOperation {
   failure: string;
 }
 
+export interface ConsumedOperation {
+  from: string;
+  operation: string;
+  note?: string;
+}
+
+export type ForcingFunction =
+  | 'FF1-independent-scaling'
+  | 'FF2-team-scale'
+  | 'FF3-fault-isolation'
+  | 'FF4-regulatory-boundary'
+  | 'FF5-polyglot-runtime'
+  | 'host';
+
 export interface ServiceLevelObjective {
   availability?: string;
   latency?: string;
@@ -80,6 +94,13 @@ export interface SpecificationMetadata {
   build_wave?: number;
   stage_order?: number;
   loop?: StageLoop;
+  deployable_unit?: string;
+  module?: string;
+  repository?: string;
+  forcing_function?: ForcingFunction;
+  modules: string[];
+  consumes: ConsumedOperation[];
+  external_events_consumed: string[];
   tags: string[];
   depends_on: string[];
   connects_to: string[];
@@ -152,6 +173,56 @@ export interface CoverageReport {
   gaps: CoverageGap[];
 }
 
+export type ContractBacking = 'declared' | 'event' | 'inferred' | 'none';
+
+export interface CrossUnitLink {
+  id: string;
+  sourceUnit: string;
+  targetUnit: string;
+  sourceId: string;
+  targetId: string;
+  backing: ContractBacking;
+  operations: string[];
+  events: string[];
+}
+
+export interface UnitPairRollup {
+  id: string;
+  sourceUnit: string;
+  targetUnit: string;
+  links: CrossUnitLink[];
+}
+
+export interface ModuleRollup {
+  module: string;
+  componentIds: string[];
+}
+
+export interface UnitRollup {
+  id: string;
+  name: string;
+  repository: string;
+  forcingFunction: ForcingFunction;
+  description: string;
+  execSummary: string;
+  sourcePath: string;
+  modules: ModuleRollup[];
+  componentIds: string[];
+  waves: number[];
+  operationCount: number;
+  monthlyUsdLow: number;
+  monthlyUsdHigh: number;
+}
+
+export interface ContractReport {
+  units: UnitRollup[];
+  pairs: UnitPairRollup[];
+  crossUnitCount: number;
+  inUnitCount: number;
+  backedCount: number;
+  gaps: CrossUnitLink[];
+}
+
 export interface WaveRollup {
   wave: number;
   componentIds: string[];
@@ -184,11 +255,13 @@ export interface GeneratedMap {
   edges: GeneratedEdge[];
   stages: GeneratedStage[];
   coverage: CoverageReport;
+  contracts: ContractReport;
   cost: CostRollup;
   validation: {
     entityCount: number;
     edgeCount: number;
     stageCount: number;
     coverageGapCount: number;
+    contractGapCount: number;
   };
 }

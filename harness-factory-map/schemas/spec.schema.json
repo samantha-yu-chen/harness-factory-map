@@ -33,6 +33,7 @@
         "component",
         "artifact",
         "decision",
+        "deployable-unit",
         "external-system",
         "workflow-step"
       ]
@@ -146,6 +147,77 @@
         "runtime",
         "learning"
       ]
+    },
+    "deployable_unit": {
+      "description": "The unit this boundary ships in: one repository, one deploy target, one release cadence. Required for anything with a build_wave. Must name a deployable-unit specification.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "module": {
+      "description": "The in-repo module this boundary lives in: one directory, one public port. Callers outside the directory import the port and nothing else. Required alongside deployable_unit, and must be declared by that unit.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "repository": {
+      "description": "Deployable-unit only. The repository name the harness team clones.",
+      "type": "string",
+      "minLength": 1
+    },
+    "forcing_function": {
+      "description": "Deployable-unit only. Which forcing function justifies a separate process and repository rather than a module in the host. Absence of all five means this should be a module.",
+      "enum": [
+        "FF1-independent-scaling",
+        "FF2-team-scale",
+        "FF3-fault-isolation",
+        "FF4-regulatory-boundary",
+        "FF5-polyglot-runtime",
+        "host"
+      ]
+    },
+    "modules": {
+      "description": "Deployable-unit only. The module directories this unit contains. Every member component must name one of these.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "consumes": {
+      "description": "The other side of someone else's api_contract. Each entry names a provider and one of its declared operations; an entry that names an operation the provider does not publish fails generation. This is what makes a contract change in one repository visible in another.",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from",
+          "operation"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "operation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "external_events_consumed": {
+      "description": "Signals that originate outside this platform and therefore have no emitter in the map. Declaring one here is the only way to consume an unemitted event; events_consumed is checked against emitters and fails generation otherwise.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
     },
     "tags": {
       "type": "array",
