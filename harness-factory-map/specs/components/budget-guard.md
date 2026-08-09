@@ -84,6 +84,8 @@ api_contract:
     worker: budget-guard
     request: "{ task_id, team_id?, contract_id, estimated_cost_usd, risk_tier }"
     response: "201 { reservation_id, envelope_usd, team_headroom_usd, decision (allow|deny), reason? }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "task_id; a repeat returns the existing reservation"
     timeout: "2s; a timeout denies"
     auth: "Workload identity; only the orchestrator may reserve"
@@ -94,6 +96,9 @@ api_contract:
     worker: budget-guard
     request: "{ reservation_id, spend_to_date_usd, step }"
     response: "200 { continue: boolean, remaining_usd, stop_reason? }"
+    frequency: per-action
+    retrofit: migration
+    p95_ms: 50
     idempotency: "reservation_id + step"
     timeout: "1s; a timeout returns continue=false"
     auth: "Workload identity"
@@ -104,6 +109,8 @@ api_contract:
     worker: agent-team-registry
     request: "{ team_id, month, ceiling_usd, actual_usd, breached_at }"
     response: "The team is suspended and its owner and sponsor are notified"
+    frequency: rare
+    retrofit: refactor
     idempotency: "team_id + month"
     timeout: "Retried until acknowledged; a breach is never dropped"
     failure: "An unacknowledged breach escalates to an incident within 15 minutes"
@@ -113,6 +120,8 @@ api_contract:
     worker: budget-guard
     request: "{ invocation_id, deployment_id, run_cap_usd, monthly_ceiling_usd }"
     response: "200 { reservation_id, remaining_monthly_usd } or 402 { reason (run_cap|monthly_ceiling) }"
+    frequency: per-run
+    retrofit: migration
     idempotency: "invocation_id"
     timeout: 300ms
     auth: "Workload identity"

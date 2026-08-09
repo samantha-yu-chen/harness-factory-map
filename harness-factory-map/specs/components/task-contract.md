@@ -74,6 +74,8 @@ api_contract:
     worker: task-contract
     request: "{ request_id, answers[9], citations[], decision_owner_upn, data_sources[], systems[] }"
     response: "201 { contract_id, version: 1, status: awaiting-signature }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "request_id; a redraft creates version n+1 under the same contract_id"
     timeout: 5s
     auth: "Workload identity"
@@ -84,6 +86,8 @@ api_contract:
     worker: task-contract
     request: "{ contract_id, version, decision (sign|reject), comment? }"
     response: "200 { contract_id, version, status (signed|rejected), signed_at, signed_by }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "contract_id + version; re-signing the same version is a no-op"
     timeout: "No technical timeout; a business escalation fires after 3 working days"
     auth: "Entra ID; must match decision_owner_upn exactly — delegation is explicit, never implied"
@@ -94,6 +98,8 @@ api_contract:
     worker: task-contract
     request: "{ contract_id, version? }"
     response: "200 { contract_id, version, answers[9], success_criteria[], data_sources[], systems[], decision_owner, status, signed_at? }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity, or Entra ID for the requester and the decision owner"
     failure: "404 for unknown; omitting version returns the latest signed version, never the latest draft"

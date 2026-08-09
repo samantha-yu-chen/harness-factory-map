@@ -82,6 +82,8 @@ api_contract:
     worker: solution-registry
     request: "{ request_id, normalised_text, requester_upn, direct_route_hint? }"
     response: "200 { verdict (confident|weak|none), candidates: [{ team_id|solution_id, name, owner, score, evidence[], status }], threshold_used, reason? }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "request_id; a repeat returns the same verdict and candidate set"
     timeout: "4s, then verdict none with reason: timeout"
     auth: "Workload identity"
@@ -92,6 +94,8 @@ api_contract:
     worker: solution-registry
     request: "{ domain?, owner?, status?, page }"
     response: "200 { entries: [{ id, name, capability_summary, owner, status, last_reviewed, monthly_run_cost }] }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 2s
     auth: "Entra ID; any employee may browse"
     failure: "Returns an empty page rather than an error when a filter matches nothing"
@@ -101,6 +105,8 @@ api_contract:
     worker: solution-registry
     request: "{ team_id, capability_description, status, owner, effective_at }"
     response: "Consumed asynchronously; the match index is refreshed"
+    frequency: per-day
+    retrofit: refactor
     idempotency: "team_id + effective_at"
     timeout: "Retried for 1h, then alerts — a stale catalogue silently mis-routes"
     failure: "A team that fails to index is excluded from matching rather than matched on stale data"

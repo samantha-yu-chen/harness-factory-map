@@ -75,6 +75,8 @@ api_contract:
     worker: evaluation-service
     request: "{ run_id, step_result_id, contract_id, contract_version, artifact_refs[] }"
     response: "201 { evaluation_id, verdict (pass|fail|untestable), criteria: [{ criterion, method (deterministic|judge), result, evidence }], coverage_ratio }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "step_result_id + contract_version"
     timeout: "120s; a timeout returns untestable"
     auth: "Workload identity"
@@ -85,6 +87,8 @@ api_contract:
     worker: evaluation-service
     request: "{ package_id, version, suite_ref }"
     response: "{ suite_run_id, passed, cases: [{ case, result, evidence }], pass_rate }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "package_id + version + suite_ref"
     timeout: "30m"
     failure: "A suite that cannot run fails the publication rather than allowing it unevaluated"
@@ -94,6 +98,8 @@ api_contract:
     worker: evaluation-service
     request: "{ evaluation_id }"
     response: "200 { verdict, criteria[], coverage_ratio, evaluated_at, judge_model_id? }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity or reviewer role"
     failure: "404 for unknown; the judge model id is always disclosed so a verdict can be reassessed after a model change"

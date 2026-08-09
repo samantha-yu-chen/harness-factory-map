@@ -75,6 +75,8 @@ api_contract:
     worker: sandbox
     request: "{ run_id, step, image_ref, resource_limits{ cpu, memory_gb, disk_gb, wall_clock_s }, task_token, egress_allowlist (tool-gateway only) }"
     response: "201 { session_id, endpoint, expires_at }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "run_id + step + attempt"
     timeout: "60s to provision"
     auth: "Workload identity"
@@ -85,6 +87,8 @@ api_contract:
     worker: sandbox
     request: "{ session_id, reason }"
     response: "200 { destroyed: true, artifacts_staged[], usage{} }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "session_id"
     timeout: 30s
     auth: "Workload identity"

@@ -89,6 +89,8 @@ api_contract:
     worker: agent-deployment
     request: "{ team_id, package_version, business_unit, deployment_owner_upn, envelope{ tools[], data_domains[], systems[], declared_inputs[] }, risk_tier, run_cap_usd, monthly_ceiling_usd, trigger_surfaces[] }"
     response: "201 { deployment_id, status: draft, package_version }"
+    frequency: rare
+    retrofit: migration
     idempotency: "team_id + package_version + business_unit"
     timeout: 5s
     auth: "Workload identity, invoked only by the registry once a governance decision is live"
@@ -99,6 +101,8 @@ api_contract:
     worker: agent-deployment
     request: "{ deployment_id, package_version, canary_window, rollback_to? }"
     response: "200 { deployment_id, live_version, previous_version, canary_until }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "deployment_id + package_version"
     timeout: "No technical timeout; the canary window is measured, not waited on"
     auth: "Entra ID; the named deployment owner"
@@ -109,6 +113,9 @@ api_contract:
     worker: agent-deployment
     request: "{ deployment_id }"
     response: "200 { deployment_id, status, live_version, envelope{}, risk_tier, run_cap_usd, monthly_ceiling_usd, spend_to_date_usd, health{ success_rate, review_latency_p95 } }"
+    frequency: per-run
+    retrofit: migration
+    p95_ms: 100
     timeout: 500ms
     auth: "Workload identity"
     failure: "404 for unknown; a suspended deployment returns status suspended and every caller must deny; an unreadable record denies rather than defaulting"
@@ -118,6 +125,8 @@ api_contract:
     worker: agent-deployment
     request: "{ deployment_id, reason (budget|health|review_latency|owner_request|incident), evidence_ref }"
     response: "202 { deployment_id, status: suspended, suspended_at }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "Repeat suspension is a no-op returning the original timestamp"
     timeout: "3s; in-flight runs finish under their existing token, no new run starts"
     auth: "Workload identity, or Entra ID for the named owner"

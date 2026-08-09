@@ -84,6 +84,8 @@ api_contract:
     worker: outcome-ledger
     request: "{ delivery_id | external_ref, contract_id, route (ticket|harness_team|dedicated_team), completeness, spend_usd, cost_complete: boolean, review_verdict?, evaluation_verdict?, cycle_time_s }"
     response: "Consumed asynchronously; the ledger entry is created"
+    frequency: per-task
+    retrofit: rewrite
     idempotency: "delivery_id or external_ref"
     timeout: "Retried for 24h then dead-lettered to operations"
     failure: "A dropped outcome is a permanently missing data point, so dead-letters are worked, not archived"
@@ -93,6 +95,8 @@ api_contract:
     worker: outcome-ledger
     request: "{ period, business_unit?, team_id? }"
     response: "200 { period, reuse_rate, cost_per_outcome_usd, review_pass_rate, escalation_rate, time_to_outcome_p50_s, contract_completion_rate, feedback_response_rate, stale: boolean }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 5s
     auth: "Entra ID; any employee may read platform-level metrics"
     failure: "Returns the previous period with stale=true rather than a computed-on-the-fly approximation"
@@ -102,6 +106,8 @@ api_contract:
     worker: outcome-ledger
     request: "{ period, min_occurrences }"
     response: "200 { patterns: [{ signal, occurrences, example_contract_ids[], suggested_action }] }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 10s
     auth: "Workload identity"
     failure: "A pattern is a suggestion with its evidence attached; it carries no authority and triggers no action by itself"
@@ -111,6 +117,8 @@ api_contract:
     worker: outcome-ledger
     request: "{ run_id, invocation_id, deployment_id, business_unit, package_version, status, model_cost_usd, infra_cost_usd, review_decision, trigger (catalogue|schedule) }"
     response: "202 { run_id, recorded_at }"
+    frequency: per-run
+    retrofit: rewrite
     idempotency: "run_id"
     timeout: 2s
     auth: "Workload identity"
@@ -121,6 +129,8 @@ api_contract:
     worker: outcome-ledger
     request: "{ deployment_id, period }"
     response: "200 { run_count, success_rate, total_cost_usd, cost_per_successful_run_usd, review_load_hours, business_unit }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 3s
     auth: "Entra ID or workload identity"
     failure: "Returns explicit coverage of the period rather than extrapolating from partial data"

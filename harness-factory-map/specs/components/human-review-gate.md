@@ -81,6 +81,8 @@ api_contract:
     worker: human-review-gate
     request: "{ run_id, step_result_id, evaluation_id, contract_id, risk_tier, artifact_refs[] }"
     response: "201 { review_id, required_reviewers[], sla_due_at, status (queued|auto-approved) }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "step_result_id"
     timeout: 5s
     auth: "Workload identity"
@@ -91,6 +93,8 @@ api_contract:
     worker: human-review-gate
     request: "{ review_id, verdict (approve|reject|amend), reason, amendments? }"
     response: "200 { review_id, status: decided, decided_by, decided_at }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "review_id + reviewer; a reviewer cannot vote twice"
     timeout: "SLA by risk tier: same day for medium, two working days for high"
     auth: "Entra ID; must be one of required_reviewers, and never an agent identity"
@@ -101,6 +105,8 @@ api_contract:
     worker: human-review-gate
     request: "{ reviewer_upn?, overdue_only? }"
     response: "200 { reviews: [{ review_id, risk_tier, sla_due_at, overdue, waiting_minutes }] }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 2s
     auth: "Entra ID; reviewer or operator role"
     failure: "Queue depth and overdue count are always available, because an unmonitored review queue is the platform's most likely silent failure"
@@ -110,6 +116,8 @@ api_contract:
     worker: human-review-gate
     request: "{ run_id, deployment_id, result_ref, evidence_ref }"
     response: "200 { required (none|reviewer|reviewer_and_domain_owner|reviewer_and_sponsor), review_id, sampled: boolean, service_level }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "run_id"
     timeout: 1s
     auth: "Workload identity"

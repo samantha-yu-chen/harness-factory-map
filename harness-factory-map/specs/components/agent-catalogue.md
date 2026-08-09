@@ -38,12 +38,15 @@ reference_map: []
 consumes:
   - from: audit-log
     operation: "POST /v1/audit/records"
+    per_action: 1
     note: "Every material decision this component makes is recorded before it is acted on."
   - from: identity-access
     operation: "POST /v1/identity/introspect"
+    per_action: 1
     note: "Resolves the caller principal on every call; scope is never inferred from a previous one."
   - from: policy-engine
     operation: "POST /v1/policy/invocations"
+    per_action: 1
     note: "Every invocation from the catalogue is authorised before a run is created."
 responsibilities:
   - Show each entitled caller the deployments they may run, with purpose, declared inputs, cost per run, owner, version, and recent reliability
@@ -86,6 +89,8 @@ api_contract:
     worker: agent-catalogue
     request: "{ caller_upn, filter{ business_unit?, domain?, query? } }"
     response: "200 { entries[{ deployment_id, name, what_it_does, declared_inputs[], typical_cost_usd, risk_tier, owner, live_version, success_rate_30d, last_success_at, entitled: boolean }] }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 2s
     auth: "Entra ID; entries are filtered by the caller's entitlements"
     failure: "A deployment whose record cannot be read is omitted rather than shown as runnable; an empty catalogue is a valid response, never an error"
@@ -95,6 +100,9 @@ api_contract:
     worker: agent-catalogue
     request: "{ deployment_id, caller_upn (or schedule principal), parameters{}, schedule_id?, requested_at }"
     response: "202 { invocation_id, deployment_id, package_version, status: awaiting_authorisation }"
+    frequency: per-run
+    retrofit: migration
+    p95_ms: 400
     idempotency: "caller_upn + deployment_id + parameters hash within a 60s window; a schedule firing is idempotent on schedule_id + window"
     timeout: 3s
     auth: "Entra ID for a person, workload identity for a schedule principal"
@@ -105,6 +113,8 @@ api_contract:
     worker: agent-catalogue
     request: "{ invocation_id }"
     response: "200 { invocation_id, status (awaiting_authorisation|denied|running|awaiting_review|delivered|partial|failed), package_version, cost_usd, outcome_ref? }"
+    frequency: per-run
+    retrofit: refactor
     timeout: 1s
     auth: "Entra ID; the requester, the deployment owner, or workload identity"
     failure: "404 for unknown; a denied invocation returns the denial reason in terms the requester can act on"
@@ -115,6 +125,9 @@ events_consumed:
   - deployment.suspended
   - deployment.promoted
   - run.completed
+hot_path:
+  unit_of_work: "One invocation started by an employee from the catalogue"
+  budget_p95_ms: 400
 slo:
   availability: "99.5%; a catalogue outage stops new work but breaks nothing running"
   latency: "p95 under 400 ms on browse"

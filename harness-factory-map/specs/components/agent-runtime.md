@@ -93,6 +93,7 @@ api_contract:
     worker: agent-runtime
     request: "{ run_id, step (understand|research|plan|execute), contract_id, contract_version, package_version, task_token, step_budget_usd, deadline }"
     response: "201 { step_result_id, status (ok|failed|needs_human), output, citations[], artifact_refs[], usage{ input_tokens, output_tokens, model_id, cost_usd } }"
+    retrofit: refactor
     idempotency: "run_id + step + attempt; a repeat returns the existing result rather than re-spending"
     timeout: "Per-step deadline supplied by the caller, maximum 15 minutes"
     auth: "The task token; the runtime holds no standing credential of any kind"
@@ -103,6 +104,8 @@ api_contract:
     worker: agent-runtime
     request: "{ step_result_id, reason }"
     response: "200 { cancelled: boolean, partial_output?, usage{} }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "step_result_id"
     timeout: 5s
     auth: "Workload identity"

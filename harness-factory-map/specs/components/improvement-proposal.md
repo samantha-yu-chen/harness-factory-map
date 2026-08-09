@@ -78,6 +78,8 @@ api_contract:
     worker: improvement-proposal
     request: "{ target (knowledge|template|rubric|package|policy), summary, evidence: { pattern_id?, outcome_ids[], metric_deltas{} }, proposed_change, expected_effect }"
     response: "201 { proposal_id, status (draft|raised), required_approver_role }"
+    frequency: per-day
+    retrofit: migration
     idempotency: "target + content hash; re-raising an identical proposal returns the existing one"
     timeout: 5s
     auth: "Workload identity or Entra ID"
@@ -88,6 +90,8 @@ api_contract:
     worker: improvement-proposal
     request: "{ proposal_id, decision (approve|reject|defer), reason, apply_by? }"
     response: "200 { proposal_id, status, approver, decided_at }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "proposal_id"
     timeout: "No technical timeout; a raised proposal is reviewed within one improvement cycle"
     auth: "Entra ID; the role named in required_approver_role, and never an agent identity"
@@ -98,6 +102,8 @@ api_contract:
     worker: improvement-proposal
     request: "{ proposal_id, measurement_window }"
     response: "{ expected_effect, observed_effect, verdict (confirmed|contradicted|inconclusive) }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "proposal_id + measurement_window"
     timeout: "10m"
     failure: "A contradicted effect raises a follow-up proposal; it never reverts the change automatically"

@@ -74,6 +74,8 @@ api_contract:
     worker: clarification-agent
     request: "{ request_id, requester_upn, original_text, reuse_candidates[]? }"
     response: "201 { session_id, first_question, channel }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "request_id; a repeat returns the existing session"
     timeout: 5s
     auth: "Workload identity"
@@ -84,6 +86,8 @@ api_contract:
     worker: clarification-agent
     request: "{ session_id, question_number (1-9), answer_text }"
     response: "200 { accepted: boolean, next_question?, unanswered[], status (in-progress|complete|needs-human) }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "session_id + question_number; a re-answer supersedes and is versioned, not appended"
     timeout: 10s
     auth: "Entra ID; only the requester or a named stakeholder may answer"
@@ -94,6 +98,8 @@ api_contract:
     worker: task-contract
     request: "{ session_id, request_id, answers[9], citations[], decision_owner_upn }"
     response: "201 { contract_id, version, status: draft }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "session_id; redrafting produces a new contract version, never a second contract"
     timeout: 10s
     auth: "Workload identity"

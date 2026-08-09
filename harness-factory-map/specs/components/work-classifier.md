@@ -81,6 +81,8 @@ api_contract:
     worker: work-classifier
     request: "{ contract_id, contract_version, reuse_verdict?, requester_business_unit }"
     response: "201 { decision_id, scores: { risk, complexity, value, repeatability }, route (ticket|harness_team|propose_dedicated), rationale, estimated_cost_usd, rubric_version, degraded: boolean }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "contract_id + contract_version + rubric_version; the same inputs always yield the same decision_id"
     timeout: "15s, then rules-only fallback marked degraded"
     auth: "Workload identity"
@@ -91,6 +93,8 @@ api_contract:
     worker: work-classifier
     request: "{ decision_id, disputed_dimension, reason }"
     response: "202 { triage_id, status: with-human }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "decision_id; one open dispute at a time"
     timeout: "Human triage responds within 2 working days"
     auth: "Entra ID; requester or decision owner"
@@ -101,6 +105,8 @@ api_contract:
     worker: work-classifier
     request: "{ version? }"
     response: "200 { version, dimensions[], thresholds, route_rules, effective_from }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 1s
     auth: "Entra ID; any employee — the rubric is deliberately public internally"
     failure: "404 for an unknown version; the current rubric is always readable"

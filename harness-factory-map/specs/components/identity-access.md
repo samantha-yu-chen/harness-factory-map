@@ -73,6 +73,9 @@ api_contract:
     worker: identity-access
     request: "{ task_id, policy_decision_id, requested_scopes[], on_behalf_of_upn, ttl_seconds (max 3600) }"
     response: "201 { token, expires_at, granted_scopes[], audience }"
+    frequency: per-task
+    retrofit: rewrite
+    p95_ms: 300
     idempotency: "task_id + policy_decision_id; a repeat within the TTL returns the same grant"
     timeout: 3s
     auth: "Workload identity; only the orchestrator's identity may call this"
@@ -83,6 +86,9 @@ api_contract:
     worker: identity-access
     request: "{ token }"
     response: "200 { active: boolean, principal, on_behalf_of_upn, granted_scopes[], expires_at, task_id? }"
+    frequency: per-action
+    retrofit: refactor
+    p95_ms: 30
     idempotency: "Read-only; the same token returns the same answer until it expires or is revoked"
     timeout: 1s
     auth: "Workload identity; a caller may introspect only tokens in its own audience"
@@ -93,6 +99,9 @@ api_contract:
     worker: identity-access
     request: "{ task_id | team_id, reason }"
     response: "200 { revoked_count, effective_at }"
+    frequency: rare
+    retrofit: refactor
+    p95_ms: 500
     idempotency: "Repeat calls are safe and return the same effective time"
     timeout: 2s
     auth: "Workload identity with the revoke role"
@@ -103,6 +112,9 @@ api_contract:
     worker: identity-access
     request: "{ on_behalf_of_token }"
     response: "200 { principal, domains_readable[], max_classification }"
+    frequency: per-action
+    retrofit: refactor
+    p95_ms: 30
     timeout: 1s
     auth: "Token introspection"
     failure: "403 on an unresolvable token; never returns a permissive default filter"

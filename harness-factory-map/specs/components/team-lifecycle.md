@@ -73,6 +73,8 @@ api_contract:
     worker: team-lifecycle
     request: "{ horizon_days }"
     response: "{ reviews_raised[], reviews_overdue[], teams_suspended[] }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "Run date; re-running is safe and does not double-suspend"
     timeout: "10m"
     failure: "A team whose review cannot be raised because its owner is unreachable is suspended and escalated to its sponsor"
@@ -82,6 +84,8 @@ api_contract:
     worker: team-lifecycle
     request: "{ team_id }"
     response: "200 { team_id, period, tasks_run, cost_usd, budget_ceiling_usd, review_pass_rate, escalation_rate, requester_feedback, recommendation (continue|scale|pause|retire), rationale, evidence_complete: boolean }"
+    frequency: rare
+    retrofit: refactor
     timeout: 5s
     auth: "Entra ID; team owner or governance role"
     failure: "evidence_complete=false makes the recommendation inconclusive; an inconclusive review still requires an owner decision, it does not auto-continue"
@@ -91,6 +95,8 @@ api_contract:
     worker: team-lifecycle
     request: "{ team_id, decision (continue|scale|pause|retire), reason, new_review_date, scope_change? }"
     response: "200 { review_id, decision, next_review_date }"
+    frequency: rare
+    retrofit: migration
     idempotency: "team_id + review period"
     timeout: "No technical timeout; the grace period governs"
     auth: "Entra ID; owner for continue and pause, governance-board for scale and retire"

@@ -68,6 +68,8 @@ api_contract:
     worker: ticket-bridge
     request: "{ contract_id, decision_id, requester_upn, summary, description, business_unit, priority_hint }"
     response: "202 { linkage_id, status: creating, external_ref? }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "contract_id; a repeat returns the existing linkage and external reference"
     timeout: "10s to accept; creation is asynchronous"
     auth: "Workload identity"
@@ -78,6 +80,8 @@ api_contract:
     worker: ticket-bridge
     request: "{ since }"
     response: "{ reconciled_count, closed[], still_open[] }"
+    frequency: per-day
+    retrofit: refactor
     idempotency: "Poll window; re-polling is safe"
     timeout: "5m per run"
     failure: "A failed poll leaves the previous known state and alerts after three consecutive failures"
@@ -87,6 +91,8 @@ api_contract:
     worker: ticket-bridge
     request: "{ contract_id }"
     response: "200 { linkage_id, external_ref, external_status, opened_at, closed_at?, resolution? }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 3s
     auth: "Entra ID; requester or platform role"
     failure: "404 for unknown; external status is reported as last-known with its timestamp, never as current when the poll is stale"

@@ -80,6 +80,8 @@ api_contract:
     worker: schedule-runner
     request: "{ deployment_id, recurrence (cron or interval), parameters{}, service_principal_id, schedule_owner_upn, window_timeout, notify_on (failure|always) }"
     response: "201 { schedule_id, next_fire_at, status: active }"
+    frequency: rare
+    retrofit: migration
     idempotency: "deployment_id + recurrence + parameters hash"
     timeout: 5s
     auth: "Entra ID; the named deployment owner only"
@@ -90,6 +92,8 @@ api_contract:
     worker: schedule-runner
     request: "{ schedule_id, reason (owner_request|deployment_suspended|repeated_failure) }"
     response: "200 { schedule_id, status: paused, paused_at }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "Repeat pause is a no-op returning the original timestamp"
     timeout: 2s
     auth: "Entra ID for the owner, workload identity for a suspension event"
@@ -100,6 +104,8 @@ api_contract:
     worker: schedule-runner
     request: "{ filter{ deployment_id?, owner?, status? } }"
     response: "200 { schedules[{ schedule_id, deployment_id, recurrence, status, last_fire_at, last_outcome, missed_windows_30d, next_fire_at }] }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 1s
     auth: "Entra ID or workload identity"
     failure: "404 for unknown; missed_windows_30d is always populated, never omitted when zero"

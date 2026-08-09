@@ -79,6 +79,8 @@ api_contract:
     worker: governance-board
     request: "{ contract_id, decision_id, scores{}, estimated_cost_usd, reuse_evidence, proposed_owner_upn, proposed_scope }"
     response: "201 { proposal_id, status: queued, scheduled_for }"
+    frequency: rare
+    retrofit: migration
     idempotency: "contract_id; a resubmission creates a new revision, visibly linked to the original"
     timeout: 5s
     auth: "Workload identity"
@@ -89,6 +91,8 @@ api_contract:
     worker: governance-board
     request: "{ proposal_id, decision (approve|decline), criteria_notes: { strategic_fit, value_roi, risk_compliance, resourcing_ownership }, conditions[], owner_upn, monthly_budget_ceiling_usd, review_date, quorum_members[] }"
     response: "201 { governance_decision_id, effective_from }"
+    frequency: rare
+    retrofit: migration
     idempotency: "proposal_id; a decided proposal cannot be re-decided, only superseded by a new revision"
     timeout: "No technical timeout; the proposal carries its next scheduled review date"
     auth: "Entra ID; leadership-team role, quorum enforced server-side"
@@ -99,6 +103,8 @@ api_contract:
     worker: governance-board
     request: "{ governance_decision_id }"
     response: "200 { decision, conditions[], owner, budget_ceiling_usd, review_date, criteria_notes{}, quorum_members[], effective_from }"
+    frequency: rare
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity or auditor role"
     failure: "404 for unknown; a decision is never returned without its conditions"

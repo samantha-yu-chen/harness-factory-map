@@ -88,6 +88,8 @@ api_contract:
     worker: knowledge-ingestion
     request: "{ domain, title, owner_upn, classification, effective_date, retention_rule, source_system_id, content_ref }"
     response: "202 { document_id, version, index_eta_seconds }"
+    frequency: per-day
+    retrofit: migration
     idempotency: "source_system_id + content hash; re-publishing identical content is a no-op returning the existing version"
     timeout: "30s to accept; indexing is asynchronous"
     auth: "Entra ID; caller must hold the data-owner role for the named domain"
@@ -98,6 +100,8 @@ api_contract:
     worker: knowledge-ingestion
     request: "{ document_id, reason, withdraw_from_index_by }"
     response: "202 { document_id, withdrawal_id, status: withdrawing }"
+    frequency: per-day
+    retrofit: refactor
     idempotency: "document_id; repeat calls return the existing withdrawal_id"
     timeout: 10s
     auth: "Entra ID; data-owner role for the document's domain"
@@ -108,6 +112,8 @@ api_contract:
     worker: knowledge-ingestion
     request: "{ domain?, since_version?, full_rebuild: boolean }"
     response: "{ build_id, documents_indexed, chunks_written, duration_seconds }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "build_id; concurrent builds for one domain are serialised"
     timeout: "4h, then abort and keep the previous index"
     failure: "A partial build is discarded whole; the index is swapped only on a complete, verified build"

@@ -43,24 +43,31 @@ reference_map:
 consumes:
   - from: identity-access
     operation: "POST /v1/identity/task-token"
+    per_action: 0
     note: "A scoped, expiring token per task; the orchestrator is the only caller permitted to mint one."
   - from: audit-log
     operation: "POST /v1/audit/records"
+    per_action: 1
     note: "Every material decision this component makes is recorded before it is acted on."
   - from: policy-engine
     operation: "POST /v1/policy/decisions"
+    per_action: 0
     note: "The decision that authorises the whole run."
   - from: task-contract
     operation: "GET /v1/contracts/{contract_id}"
+    per_action: 0
     note: "The signed statement of what the run is for."
   - from: agent-deployment
     operation: "GET /v1/deployments/{deployment_id}/envelope"
+    per_action: 0
     note: "Runtime runs read their deployment envelope before starting."
   - from: outcome-delivery
     operation: "POST /v1/deliveries"
+    per_action: 0
     note: "Hands a finished run to delivery rather than returning it directly."
   - from: sandbox
     operation: "POST /v1/sandbox/sessions"
+    per_action: 0
     note: "Opens the bounded session a step executes inside."
 responsibilities:
   - Own the authoritative execution state machine for every task
@@ -102,6 +109,8 @@ api_contract:
     worker: team-orchestrator
     request: "{ contract_id, contract_version, decision_id, team_id?, risk_tier }"
     response: "201 { run_id, task_id, state: understanding, policy_decision_id, reservation_id }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "contract_id + contract_version; a repeat returns the existing run"
     timeout: 10s
     auth: "Workload identity"
@@ -112,6 +121,9 @@ api_contract:
     worker: team-orchestrator
     request: "{ run_id, from_state, step_result, evidence_refs[], spend_to_date_usd }"
     response: "200 { run_id, state, next_step, continue: boolean }"
+    frequency: per-action
+    retrofit: migration
+    p95_ms: 500
     idempotency: "run_id + from_state + step attempt; replaying a transition is safe"
     timeout: 5s
     auth: "Workload identity"
@@ -122,6 +134,8 @@ api_contract:
     worker: team-orchestrator
     request: "{ run_id, reason (budget|review|owner|incident), note }"
     response: "200 { run_id, state: stopped, partial_outcome_ref }"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "run_id; repeat stops are no-ops"
     timeout: 3s
     auth: "Workload identity, or Entra ID for the owner and operator roles"
@@ -132,6 +146,8 @@ api_contract:
     worker: team-orchestrator
     request: "{ run_id }"
     response: "200 { run_id, contract_id, state, steps[{ step, started, ended, verdict, evidence_refs[] }], spend_usd, team_id }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Entra ID; requester, reviewer, or platform role"
     failure: "404 for unknown; step evidence is returned by reference, not inline"
@@ -146,6 +162,9 @@ events_consumed:
   - review.verdict.recorded
   - budget.task_stopped
   - team.suspended
+hot_path:
+  unit_of_work: "One run state transition"
+  budget_p95_ms: 500
 slo:
   availability: "99.9%"
   latency: "p95 under 500 ms per state transition"

@@ -79,6 +79,9 @@ api_contract:
     worker: policy-engine
     request: "{ contract_id, contract_version, team_id?, principal, requested_scope{ tools[], data_domains[], systems[] } }"
     response: "201 { policy_decision_id, verdict (allow|deny|escalate), granted_scope{}, rationale, rule_set_version, cited_governance_decision_id?, expires_at }"
+    frequency: per-task
+    retrofit: migration
+    p95_ms: 800
     idempotency: "contract_id + contract_version + principal + rule_set_version"
     timeout: "2s; a timeout is a deny"
     auth: "Workload identity; only the orchestrator may request a task-level decision"
@@ -89,6 +92,9 @@ api_contract:
     worker: policy-engine
     request: "{ policy_decision_id, tool, operation, target_resource, classification }"
     response: "200 { verdict (allow|deny), rationale, rule_id }"
+    frequency: per-action
+    retrofit: refactor
+    p95_ms: 50
     idempotency: "Read-only evaluation; safe to repeat and always re-evaluated, never cached by the caller"
     timeout: "200ms; a timeout is a deny"
     auth: "Workload identity"
@@ -99,6 +105,8 @@ api_contract:
     worker: policy-engine
     request: "{ rules[], effective_from, change_reference, author_upn }"
     response: "201 { rule_set_version, consistency_check: passed, shadow_results{} }"
+    frequency: rare
+    retrofit: migration
     idempotency: "change_reference"
     timeout: 30s
     auth: "Entra ID; policy-author role, and never an agent identity"
@@ -109,6 +117,9 @@ api_contract:
     worker: policy-engine
     request: "{ invocation_id, deployment_id, caller_upn, parameters{}, requested_at }"
     response: "200 { decision (allow|deny), effective_scope{ tools[], data_domains[], systems[] }, rule_set_version, reason }"
+    frequency: per-run
+    retrofit: migration
+    p95_ms: 150
     idempotency: "invocation_id; the decision is recorded once and replayed"
     timeout: 500ms
     auth: "Workload identity"

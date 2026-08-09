@@ -86,6 +86,8 @@ api_contract:
     worker: agent-team-registry
     request: "{ governance_decision_id, name, capability_description, owner_upn, scope{ tools[], data_domains[], systems[] }, monthly_budget_ceiling_usd, review_date, package_version }"
     response: "201 { team_id, status: active, effective_from }"
+    frequency: rare
+    retrofit: migration
     idempotency: "governance_decision_id; one team per decision"
     timeout: 5s
     auth: "Workload identity, invoked only by the governance-board service"
@@ -96,6 +98,8 @@ api_contract:
     worker: agent-team-registry
     request: "{ team_id, reason (budget|review_overdue|owner_request|incident), note }"
     response: "200 { team_id, status: suspended, suspended_at, credentials_revoked: boolean }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "Repeat suspension is a no-op returning the original timestamp"
     timeout: "3s; credential revocation is triggered synchronously"
     auth: "Workload identity, or Entra ID for the named owner"
@@ -106,6 +110,8 @@ api_contract:
     worker: agent-team-registry
     request: "{ team_id, resolution_note, new_review_date?, acknowledged_by }"
     response: "200 { team_id, status: active, review_date }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "team_id + resolution_note"
     timeout: "No technical timeout"
     auth: "Entra ID; the named owner, and for a budget suspension the governance sponsor as well"
@@ -116,6 +122,8 @@ api_contract:
     worker: agent-team-registry
     request: "{ team_id }"
     response: "200 { team_id, name, owner, scope{}, status, budget_ceiling_usd, spend_to_date_usd, review_date, package_version, governance_decision_id }"
+    frequency: per-run
+    retrofit: refactor
     timeout: 1s
     auth: "Workload identity"
     failure: "404 for unknown; a suspended team returns status suspended and callers must honour it"

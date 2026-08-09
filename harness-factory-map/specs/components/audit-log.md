@@ -66,6 +66,9 @@ api_contract:
     worker: audit-log
     request: "{ record_type, request_id, task_id?, contract_id?, decision_id?, actor (identity + type), summary, rationale, evidence_refs[], at }"
     response: "201 { record_id, sequence, hash, previous_hash }"
+    frequency: per-action
+    retrofit: rewrite
+    p95_ms: 200
     idempotency: "decision_id where present, otherwise caller-supplied record key; duplicate appends return the original record_id"
     timeout: "2s; the caller must treat a timeout as a failure to record, not as a success"
     auth: "Workload identity; every platform identity may append, none may modify"
@@ -76,6 +79,8 @@ api_contract:
     worker: audit-log
     request: "{ request_id, include_evidence: boolean }"
     response: "200 { request_id, records[] ordered by sequence, chain_verified: boolean }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 10s
     auth: "Entra ID; auditor, reviewer, or the request's own requester"
     failure: "404 for an unknown request; chain_verified=false is an incident, not a warning"
@@ -85,6 +90,8 @@ api_contract:
     worker: audit-log
     request: "{ scope (request_id | contract_id | date_range), reason, applied_by }"
     response: "201 { hold_id, records_held }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "scope + reason"
     timeout: 5s
     auth: "Entra ID; legal-hold role only"

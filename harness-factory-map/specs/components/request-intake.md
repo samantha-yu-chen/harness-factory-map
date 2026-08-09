@@ -79,6 +79,8 @@ api_contract:
     worker: request-intake
     request: "{ channel (portal|chat|email), requester_upn, title, body, attachments[]?, client_request_id, direct_route_hint? }"
     response: "201 { request_id, status: received, duplicate_of?, next_step, expectation_note }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "client_request_id, 24-hour window; a repeat returns the original request_id with duplicate_of set"
     timeout: 5s
     auth: "Entra ID; the adapter presents the requester's identity, it does not assert its own"
@@ -89,6 +91,8 @@ api_contract:
     worker: request-intake
     request: "{ request_id }"
     response: "200 { request_id, original_text, normalised, requester, channel, status, stage, contract_id?, decision_id? }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Entra ID; the requester, their manager, or a platform role"
     failure: "404 for unknown; 403 rather than a filtered body when the caller may not read it"
@@ -98,6 +102,8 @@ api_contract:
     worker: solution-registry
     request: "{ request_id, normalised_text, requester_upn, direct_route_hint? }"
     response: "Consumed asynchronously; stage 2 replies with a reuse decision event"
+    frequency: per-task
+    retrofit: refactor
     idempotency: "request_id; the consumer must tolerate redelivery"
     timeout: "Delivery retried for 24h, then dead-lettered to human triage"
     failure: "A dead-lettered request is visible in triage within one hour; a request never sits silently unrouted"

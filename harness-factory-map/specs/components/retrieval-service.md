@@ -38,9 +38,11 @@ reference_map:
 consumes:
   - from: audit-log
     operation: "POST /v1/audit/records"
+    per_action: 1
     note: "Every material decision this component makes is recorded before it is acted on."
   - from: identity-access
     operation: "GET /v1/identity/access-filter"
+    per_action: 1
     note: "Permission filter applied before retrieval, not after."
 responsibilities:
   - Answer a retrieval query with ranked, cited passages
@@ -79,6 +81,9 @@ api_contract:
     worker: retrieval-service
     request: "{ query, task_id, domains[]?, top_k (max 20), min_relevance?, on_behalf_of_token }"
     response: "200 { grounded: boolean, passages: [{ document_id, version, classification, owner, passage, relevance, citation }], filtered_count, reason? }"
+    frequency: per-action
+    retrofit: refactor
+    p95_ms: 800
     idempotency: "Read-only; safe to repeat. Every call is still traced against task_id."
     timeout: "3s, then return not-grounded with reason: timeout"
     auth: "Entra ID on-behalf-of; the access filter is derived from the token, never from the request body"
@@ -89,6 +94,8 @@ api_contract:
     worker: retrieval-service
     request: "{ task_id }"
     response: "200 { task_id, queries: [{ query, at, document_ids[], grounded }] }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Entra ID; reviewer or auditor role"
     failure: "404 when the task is unknown; passage text is never replayed here, only identifiers"
@@ -97,6 +104,9 @@ events_emitted:
   - retrieval.not_grounded
 events_consumed:
   - knowledge.index.rebuilt
+hot_path:
+  unit_of_work: "One grounded query answered for a running agent"
+  budget_p95_ms: 800
 slo:
   availability: "99.9%; degradation is an explicit not-grounded verdict, not an error page"
   latency: "p95 under 800 ms for top_k of 10"

@@ -81,6 +81,8 @@ api_contract:
     worker: agent-package
     request: "{ name, roles[{ role, system_prompt, model_tier, step }], tools[], memory_refs[], evaluation_suite_ref, author_upn, change_reference }"
     response: "201 { package_id, version, status: evaluating }"
+    frequency: rare
+    retrofit: migration
     idempotency: "name + content hash; identical content returns the existing version"
     timeout: "10s to accept; evaluation is asynchronous"
     auth: "Entra ID; package-author role, never an agent identity"
@@ -91,6 +93,8 @@ api_contract:
     worker: agent-package
     request: "{ package_id, version }"
     response: "200 { manifest, evaluation_evidence_ref, signature, published_at, published_by, status }"
+    frequency: per-run
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity or auditor role"
     failure: "404 for unknown; a withdrawn version returns with status withdrawn rather than 404, so past runs stay explicable"
@@ -100,6 +104,8 @@ api_contract:
     worker: agent-package
     request: "{ package_id, version, reason }"
     response: "200 { status: withdrawn, teams_affected[] }"
+    frequency: rare
+    retrofit: refactor
     idempotency: "package_id + version"
     timeout: 5s
     auth: "Entra ID; owner or security role"

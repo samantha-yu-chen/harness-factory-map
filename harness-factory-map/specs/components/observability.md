@@ -65,6 +65,9 @@ api_contract:
     worker: observability
     request: "OTLP logs, metrics, and spans; every span carries request_id, task_id, team_id, and model_id where applicable"
     response: "Accepted or shed; the caller never waits on the result"
+    frequency: per-action
+    retrofit: refactor
+    p95_ms: 0
     idempotency: "Span id; duplicate exports collapse"
     timeout: "1s, fire and forget"
     auth: "Workload identity"
@@ -75,6 +78,8 @@ api_contract:
     worker: observability
     request: "{ task_id }"
     response: "200 { task_id, input_tokens, output_tokens, model_usd, infra_seconds, tool_calls }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity"
     failure: "Returns partial data with a completeness flag; budget-guard treats incomplete cost data as at-limit, not as zero"
@@ -84,6 +89,8 @@ api_contract:
     worker: observability
     request: "{ deployment_id, window }"
     response: "200 { success_rate, run_count, cost_burn_usd, cost_forecast_usd, review_latency_p95, telemetry_complete: boolean }"
+    frequency: per-day
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity"
     failure: "telemetry_complete false is returned rather than a partial number presented as whole; every caller must treat incomplete measurement as at-limit"
@@ -93,6 +100,8 @@ api_contract:
     worker: agent-deployment
     request: "{ deployment_id, signal (success_rate|cost_burn|review_latency), observed, threshold, window }"
     response: "Consumed by agent-deployment, which suspends the deployment"
+    frequency: per-day
+    retrofit: refactor
     idempotency: "deployment_id + signal + window"
     timeout: "Delivered within one evaluation window"
     auth: "Workload identity"

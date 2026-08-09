@@ -36,13 +36,20 @@ reference_map: []
 consumes:
   - from: audit-log
     operation: "POST /v1/audit/records"
+    per_action: 1
     note: "Every material decision this component makes is recorded before it is acted on."
   - from: observability
     operation: "otlp.export"
+    per_action: 1
     note: "Spans and metrics for every step, exported rather than stored locally."
   - from: identity-access
     operation: "POST /v1/identity/introspect"
+    per_action: 1
     note: "Resolves the caller principal on every call; scope is never inferred from a previous one."
+  - from: policy-engine
+    operation: "POST /v1/policy/check"
+    per_action: 1
+    note: "Checked on every call and never cached. The map inferred this pairing from the provider's caller field until it was declared here."
 responsibilities:
   - Expose an allow-listed catalogue of typed tool operations
   - Check every call against the policy engine before executing it
@@ -82,6 +89,9 @@ api_contract:
     worker: tool-gateway
     request: "{ run_id, policy_decision_id, tool, operation, arguments{}, task_token, side_effect (read|write) }"
     response: "200 { call_id, result, effect_recorded: boolean } or 403 { denied_by_rule_id, rationale }"
+    frequency: per-action
+    retrofit: migration
+    p95_ms: 80
     idempotency: "run_id + tool + operation + argument hash for reads; writes require a caller-supplied idempotency key and the gateway rejects a write without one"
     timeout: "Per-tool, default 30s, maximum 120s"
     auth: "Task token, introspected on every call; scope is never inferred from a previous call"
@@ -92,6 +102,8 @@ api_contract:
     worker: tool-gateway
     request: "{ }"
     response: "200 { tools: [{ name, operations: [{ name, argument_schema, side_effect, risk_tier, requires_review }] }] }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 2s
     auth: "Workload identity"
     failure: "The catalogue is static and cached; it never returns a tool that is not registered and reviewed"
@@ -101,6 +113,8 @@ api_contract:
     worker: tool-gateway
     request: "{ name, operations[], argument_schemas{}, service_credential_ref, risk_tier, reviewed_by }"
     response: "201 { tool_version, effective_from }"
+    frequency: rare
+    retrofit: migration
     idempotency: "name + version"
     timeout: 10s
     auth: "Entra ID; tool-author role, never an agent identity"
@@ -112,6 +126,9 @@ events_emitted:
   - tool.registered
 events_consumed:
   - policy.decision.revoked
+hot_path:
+  unit_of_work: "One tool call made by a running agent"
+  budget_p95_ms: 80
 slo:
   availability: "99.9%"
   latency: "Gateway overhead p95 under 80 ms, excluding the external system"

@@ -77,6 +77,8 @@ api_contract:
     worker: outcome-delivery
     request: "{ run_id, contract_id, contract_version, review_id?, step_result_id, artifact_refs[], evidence_refs[], spend_usd, package_version, completeness (complete|partial|budget_stopped|failed) }"
     response: "201 { delivery_id, channel, delivered_at, portal_url }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "run_id; a repeat returns the existing delivery"
     timeout: 15s
     auth: "Workload identity"
@@ -87,6 +89,8 @@ api_contract:
     worker: outcome-delivery
     request: "{ delivery_id }"
     response: "200 { delivery_id, outcome_summary, artifact_refs[], citations[], spend_usd, package_version, contract_version, completeness, reviewed_by? }"
+    frequency: per-task
+    retrofit: refactor
     timeout: 3s
     auth: "Entra ID; requester, reviewer, or platform role"
     failure: "404 for unknown; 403 rather than a redacted body when the caller may not read it"
@@ -96,6 +100,8 @@ api_contract:
     worker: outcome-ledger
     request: "{ delivery_id, useful (yes|partly|no), comment?, would_reuse (yes|no) }"
     response: "201 { feedback_id }"
+    frequency: per-task
+    retrofit: migration
     idempotency: "delivery_id + requester; feedback can be revised, and revisions are versioned"
     timeout: 3s
     auth: "Entra ID; the requester or the decision owner"
