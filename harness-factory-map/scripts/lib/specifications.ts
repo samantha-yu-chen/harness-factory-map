@@ -5,6 +5,7 @@ import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js';
 import schema from '../../schemas/spec.schema.json';
 import type {
   AzureServiceRollup,
+  ConsumedOperation,
   ContractBacking,
   ContractReport,
   CostRollup,
@@ -15,7 +16,13 @@ import type {
   GeneratedEntity,
   GeneratedMap,
   GeneratedStage,
+  HotPath,
+  HotPathCall,
+  HotPathRollup,
   ModuleRollup,
+  RetrofitCost,
+  RetrofitEntry,
+  ScaleReport,
   SpecificationMetadata,
   UnitPairRollup,
   UnitRollup,
@@ -356,6 +363,29 @@ function validateEventPairing(specifications: ParsedFile[]): void {
   }
 }
 
+// WHY: a latency budget nobody can add up is decoration. A component claiming a hot path has to
+// say how many times it calls each provider, or the arithmetic that would catch an overrun cannot run.
+function validateHotPathCounts({ metadata, sourcePath }: ParsedFile): void {
+  if (metadata.hot_path === undefined) return;
+  for (const entry of metadata.consumes) {
+    if (entry.per_action !== undefined) continue;
+    throw new SpecificationError(
+      `${sourcePath}: hot_path requires per_action on every consumes entry — "${entry.from} · ${entry.operation}" has none`,
+    );
+  }
+}
+
+// WHY: the cost rule already refuses a monthly range with no volume driver. A per-action operation
+// with no stated latency budget is the same omission on the axis that decides whether this is usable.
+function validatePerActionBudgets({ metadata, sourcePath }: ParsedFile): void {
+  for (const entry of metadata.api_contract) {
+    if (entry.frequency !== 'per-action' || entry.p95_ms !== undefined) continue;
+    throw new SpecificationError(
+      `${sourcePath}: operation "${entry.operation}" is per-action and must state a p95_ms budget`,
+    );
+  }
+}
+
 function validateSpecifications(specifications: ParsedFile[]): void {
   const knownIds = new Set<string>();
   for (const { metadata, sourcePath } of specifications) {
@@ -372,6 +402,8 @@ function validateSpecifications(specifications: ParsedFile[]): void {
   validateUnitPlacement(specifications);
   validateConsumedOperations(specifications);
   validateEventPairing(specifications);
+  for (const specification of specifications) validateHotPathCounts(specification);
+  for (const specification of specifications) validatePerActionBudgets(specification);
 }
 
 function memberIds(specifications: ParsedFile[], stageId: string): string[] {
@@ -608,6 +640,118 @@ function buildCost(specifications: ParsedFile[]): CostRollup {
   };
 }
 
+function operationBudgets(specifications: ParsedFile[]): Map<string, number> {
+  const budgets = new Map<string, number>();
+  for (const { metadata } of specifications) {
+    for (const entry of metadata.api_contract) {
+      if (entry.p95_ms === undefined) continue;
+      budgets.set(`${metadata.id}::${entry.operation}`, entry.p95_ms);
+    }
+  }
+  return budgets;
+}
+
+function placedUnits(specifications: ParsedFile[]): Map<string, string> {
+  const units = new Map<string, string>();
+  for (const { metadata } of specifications) {
+    if (metadata.deployable_unit !== undefined) units.set(metadata.id, metadata.deployable_unit);
+  }
+  return units;
+}
+
+function hotPathCall(
+  entry: ConsumedOperation,
+  callerUnit: string | undefined,
+  units: Map<string, string>,
+  budgets: Map<string, number>,
+): HotPathCall {
+  const p95Ms = budgets.get(`${entry.from}::${entry.operation}`);
+  const providerUnit = units.get(entry.from);
+  const perAction = entry.per_action ?? 0;
+  return {
+    providerId: entry.from,
+    operation: entry.operation,
+    perAction,
+    crossesUnit: providerUnit !== undefined && providerUnit !== callerUnit,
+    p95Ms,
+    subtotalMs: p95Ms === undefined ? undefined : round(p95Ms * perAction),
+  };
+}
+
+function sumCalls(calls: HotPathCall[], read: (call: HotPathCall) => number): number {
+  return round(calls.reduce((total, call) => total + read(call), 0));
+}
+
+// WHY: the overrun this produces is a specification fact, not a measurement — a component promising
+// less overhead than the providers it already names have promised it. That is knowable before a
+// line of code exists, and it is cheapest to know now.
+function rollupHotPath(
+  { metadata }: ParsedFile,
+  hotPath: HotPath,
+  units: Map<string, string>,
+  budgets: Map<string, number>,
+): HotPathRollup {
+  const calls = metadata.consumes.map((entry) =>
+    hotPathCall(entry, metadata.deployable_unit, units, budgets),
+  );
+  const committedMs = sumCalls(calls, (call) => call.subtotalMs ?? 0);
+  return {
+    componentId: metadata.id,
+    unitOfWork: hotPath.unit_of_work,
+    budgetP95Ms: hotPath.budget_p95_ms,
+    calls,
+    roundTrips: sumCalls(calls, (call) => call.perAction),
+    crossUnitRoundTrips: sumCalls(calls, (call) => (call.crossesUnit ? call.perAction : 0)),
+    committedMs,
+    unpricedOperations: calls
+      .filter((call) => call.p95Ms === undefined && call.perAction > 0)
+      .map((call) => `${call.providerId} · ${call.operation}`),
+    overBudgetMs: round(Math.max(0, committedMs - hotPath.budget_p95_ms)),
+  };
+}
+
+const RETROFIT_RANK: Record<RetrofitCost, number> = { rewrite: 0, migration: 1, refactor: 2 };
+
+function compareRetrofit(left: RetrofitEntry, right: RetrofitEntry): number {
+  const byCost = RETROFIT_RANK[left.retrofit] - RETROFIT_RANK[right.retrofit];
+  if (byCost !== 0) return byCost;
+  return `${left.componentId} ${left.operation}`.localeCompare(`${right.componentId} ${right.operation}`);
+}
+
+function retrofitEntries(specifications: ParsedFile[]): RetrofitEntry[] {
+  const entries: RetrofitEntry[] = [];
+  for (const { metadata } of specifications) {
+    for (const entry of metadata.api_contract) {
+      if (entry.retrofit === undefined) continue;
+      const { operation, retrofit, frequency } = entry;
+      entries.push({ componentId: metadata.id, operation, retrofit, frequency });
+    }
+  }
+  return entries.sort(compareRetrofit);
+}
+
+function compareHotPaths(left: HotPathRollup, right: HotPathRollup): number {
+  const byOverrun = right.overBudgetMs - left.overBudgetMs;
+  return byOverrun !== 0 ? byOverrun : left.componentId.localeCompare(right.componentId);
+}
+
+function buildScale(specifications: ParsedFile[]): ScaleReport {
+  const units = placedUnits(specifications);
+  const budgets = operationBudgets(specifications);
+  const hotPaths = specifications
+    .flatMap((file) => (file.metadata.hot_path ? [rollupHotPath(file, file.metadata.hot_path, units, budgets)] : []))
+    .sort(compareHotPaths);
+  const classified = retrofitEntries(specifications);
+  return {
+    hotPaths,
+    budgetFindings: hotPaths.filter((path) => path.overBudgetMs > 0),
+    decideNow: classified.filter((entry) => entry.retrofit !== 'refactor'),
+    deferrable: classified.filter((entry) => entry.retrofit === 'refactor'),
+    operationCount: specifications.reduce((total, { metadata }) => total + metadata.api_contract.length, 0),
+    classifiedCount: classified.length,
+  };
+}
+
 function buildEdges(specifications: ParsedFile[], stages: GeneratedStage[]) {
   const relationMap = new Map<
     string,
@@ -645,6 +789,7 @@ export function buildMap(specifications: ParsedFile[], schemaId = schema.$id): G
   const edges = buildEdges(specifications, stages);
   const entities = buildEntities(specifications);
   const contracts = buildContracts(specifications, edges);
+  const scale = buildScale(specifications);
 
   return {
     generatedHeader: GENERATED_HEADER,
@@ -655,12 +800,14 @@ export function buildMap(specifications: ParsedFile[], schemaId = schema.$id): G
     coverage,
     contracts,
     cost: buildCost(specifications),
+    scale,
     validation: {
       entityCount: entities.length,
       edgeCount: edges.length,
       stageCount: stages.length,
       coverageGapCount: coverage.gaps.length,
       contractGapCount: contracts.gaps.length,
+      budgetFindingCount: scale.budgetFindings.length,
     },
   };
 }

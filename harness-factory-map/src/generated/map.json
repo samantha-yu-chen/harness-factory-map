@@ -10630,11 +10630,20 @@
       }
     ]
   },
+  "scale": {
+    "hotPaths": [],
+    "budgetFindings": [],
+    "decideNow": [],
+    "deferrable": [],
+    "operationCount": 94,
+    "classifiedCount": 0
+  },
   "validation": {
     "entityCount": 48,
     "edgeCount": 211,
     "stageCount": 13,
     "coverageGapCount": 0,
-    "contractGapCount": 0
+    "contractGapCount": 0,
+    "budgetFindingCount": 0
   }
 }

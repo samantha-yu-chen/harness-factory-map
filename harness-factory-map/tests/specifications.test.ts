@@ -142,3 +142,187 @@ describe('contract-pairing gates', () => {
     ).not.toThrow();
   });
 });
+
+const OTHER_UNIT = file({
+  id: 'unit-two',
+  entity_type: 'deployable-unit',
+  repository: 'repo-two',
+  forcing_function: 'FF4-regulatory-boundary',
+  modules: ['core'],
+});
+
+const GATEKEEPER = file({
+  id: 'gatekeeper',
+  deployable_unit: 'unit-two',
+  module: 'core',
+  build_wave: 1,
+  api_contract: [
+    {
+      operation: 'POST /v1/decisions',
+      kind: 'sync-api',
+      caller: 'hot-component',
+      worker: 'gatekeeper',
+      request: '{ }',
+      response: '200 { }',
+      frequency: 'per-action',
+      retrofit: 'refactor',
+      p95_ms: 50,
+      failure: 'A check that cannot be evaluated denies',
+    },
+  ],
+});
+
+function hotComponent(overrides: Partial<SpecificationMetadata> = {}): Parsed {
+  return file({
+    id: 'hot-component',
+    deployable_unit: 'unit-one',
+    module: 'core',
+    build_wave: 1,
+    hot_path: { unit_of_work: 'one tool call', budget_p95_ms: 80 },
+    consumes: [{ from: 'gatekeeper', operation: 'POST /v1/decisions', per_action: 1 }],
+    ...overrides,
+  });
+}
+
+const HOT_WORLD = [UNIT, OTHER_UNIT, GATEKEEPER];
+
+describe('hot-path gates', () => {
+  it('accepts a hot path whose every consumed operation states a call count', () => {
+    expect(() => buildMap([...HOT_WORLD, hotComponent()], 'test')).not.toThrow();
+  });
+
+  it('refuses a hot path with a consumed operation it cannot count', () => {
+    const uncounted = hotComponent({ consumes: [{ from: 'gatekeeper', operation: 'POST /v1/decisions' }] });
+    expect(() => buildMap([...HOT_WORLD, uncounted], 'test')).toThrow(/requires per_action/);
+  });
+
+  it('refuses a per-action operation that commits to no latency budget', () => {
+    const unpriced = file({
+      id: 'unpriced',
+      deployable_unit: 'unit-one',
+      module: 'core',
+      build_wave: 1,
+      api_contract: [
+        {
+          operation: 'POST /v1/unpriced',
+          kind: 'sync-api',
+          caller: 'anybody',
+          worker: 'unpriced',
+          request: '{ }',
+          response: '200 { }',
+          frequency: 'per-action',
+          failure: 'Denies',
+        },
+      ],
+    });
+    expect(() => buildMap([UNIT, unpriced], 'test')).toThrow(/must state a p95_ms budget/);
+  });
+});
+
+describe('hot-path arithmetic', () => {
+  it('reports an overrun rather than failing the build', () => {
+    const overspent = hotComponent({
+      consumes: [{ from: 'gatekeeper', operation: 'POST /v1/decisions', per_action: 2 }],
+    });
+    const { scale } = buildMap([...HOT_WORLD, overspent], 'test');
+    expect(scale.budgetFindings).toHaveLength(1);
+    expect(scale.budgetFindings[0]).toMatchObject({ committedMs: 100, budgetP95Ms: 80, overBudgetMs: 20 });
+  });
+
+  it('leaves a hot path that fits inside its budget out of the findings', () => {
+    const { scale } = buildMap([...HOT_WORLD, hotComponent()], 'test');
+    expect(scale.hotPaths).toHaveLength(1);
+    expect(scale.budgetFindings).toHaveLength(0);
+  });
+
+  it('separates round trips that leave the repository from those that do not', () => {
+    const local = file({
+      id: 'neighbour',
+      deployable_unit: 'unit-one',
+      module: 'core',
+      build_wave: 1,
+      api_contract: [
+        {
+          operation: 'POST /v1/local',
+          kind: 'sync-api',
+          caller: 'hot-component',
+          worker: 'neighbour',
+          request: '{ }',
+          response: '200 { }',
+          p95_ms: 5,
+          failure: 'Raises',
+        },
+      ],
+    });
+    const mixed = hotComponent({
+      consumes: [
+        { from: 'gatekeeper', operation: 'POST /v1/decisions', per_action: 1 },
+        { from: 'neighbour', operation: 'POST /v1/local', per_action: 3 },
+      ],
+    });
+    const { scale } = buildMap([...HOT_WORLD, local, mixed], 'test');
+    expect(scale.hotPaths[0]).toMatchObject({ roundTrips: 4, crossUnitRoundTrips: 1, committedMs: 65 });
+  });
+
+  it('names the operations a hot path cannot price', () => {
+    const silent = file({
+      id: 'silent',
+      deployable_unit: 'unit-one',
+      module: 'core',
+      build_wave: 1,
+      api_contract: [
+        {
+          operation: 'POST /v1/silent',
+          kind: 'sync-api',
+          caller: 'hot-component',
+          worker: 'silent',
+          request: '{ }',
+          response: '200 { }',
+          failure: 'Raises',
+        },
+      ],
+    });
+    const guessing = hotComponent({
+      consumes: [{ from: 'silent', operation: 'POST /v1/silent', per_action: 1 }],
+    });
+    const { scale } = buildMap([...HOT_WORLD, silent, guessing], 'test');
+    expect(scale.hotPaths[0].unpricedOperations).toEqual(['silent · POST /v1/silent']);
+  });
+});
+
+describe('retrofit classification', () => {
+  it('separates what must be decided now from what can wait, worst first', () => {
+    const risky = file({
+      id: 'risky',
+      deployable_unit: 'unit-one',
+      module: 'core',
+      build_wave: 1,
+      api_contract: [
+        {
+          operation: 'POST /v1/records',
+          kind: 'sync-api',
+          caller: 'anybody',
+          worker: 'risky',
+          request: '{ }',
+          response: '201 { }',
+          retrofit: 'migration',
+          failure: 'Raises',
+        },
+        {
+          operation: 'POST /v1/model',
+          kind: 'sync-api',
+          caller: 'anybody',
+          worker: 'risky',
+          request: '{ }',
+          response: '201 { }',
+          retrofit: 'rewrite',
+          failure: 'Raises',
+        },
+      ],
+    });
+    const { scale } = buildMap([...HOT_WORLD, risky], 'test');
+    expect(scale.decideNow.map((entry) => entry.operation)).toEqual(['POST /v1/model', 'POST /v1/records']);
+    expect(scale.deferrable.map((entry) => entry.operation)).toEqual(['POST /v1/decisions']);
+    expect(scale).toMatchObject({ classifiedCount: 3, operationCount: 3 });
+  });
+});

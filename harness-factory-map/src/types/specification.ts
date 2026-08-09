@@ -262,6 +262,43 @@ export interface CostRollup {
   azureServices: AzureServiceRollup[];
 }
 
+export interface HotPathCall {
+  providerId: string;
+  operation: string;
+  perAction: number;
+  crossesUnit: boolean;
+  p95Ms?: number;
+  subtotalMs?: number;
+}
+
+export interface HotPathRollup {
+  componentId: string;
+  unitOfWork: string;
+  budgetP95Ms: number;
+  calls: HotPathCall[];
+  roundTrips: number;
+  crossUnitRoundTrips: number;
+  committedMs: number;
+  unpricedOperations: string[];
+  overBudgetMs: number;
+}
+
+export interface RetrofitEntry {
+  componentId: string;
+  operation: string;
+  retrofit: RetrofitCost;
+  frequency?: CallFrequency;
+}
+
+export interface ScaleReport {
+  hotPaths: HotPathRollup[];
+  budgetFindings: HotPathRollup[];
+  decideNow: RetrofitEntry[];
+  deferrable: RetrofitEntry[];
+  operationCount: number;
+  classifiedCount: number;
+}
+
 export interface GeneratedMap {
   generatedHeader: string;
   schemaId: string;
@@ -271,11 +308,13 @@ export interface GeneratedMap {
   coverage: CoverageReport;
   contracts: ContractReport;
   cost: CostRollup;
+  scale: ScaleReport;
   validation: {
     entityCount: number;
     edgeCount: number;
     stageCount: number;
     coverageGapCount: number;
     contractGapCount: number;
+    budgetFindingCount: number;
   };
 }
