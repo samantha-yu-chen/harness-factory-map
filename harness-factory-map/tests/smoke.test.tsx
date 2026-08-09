@@ -186,3 +186,17 @@ describe('scale readiness report', () => {
     expect(gateway?.crossUnitRoundTrips).toBe(4);
   });
 });
+
+describe('what the build brief promises', () => {
+  it('pins the four operations the brief says cannot be recovered by a migration', () => {
+    const rewrites = map.scale.decideNow
+      .filter((entry) => entry.retrofit === 'rewrite')
+      .map((entry) => `${entry.componentId} · ${entry.operation}`);
+    expect(rewrites).toEqual([
+      'audit-log · POST /v1/audit/records',
+      'identity-access · POST /v1/identity/task-token',
+      'outcome-ledger · POST /v1/outcomes',
+      'outcome-ledger · POST /v1/runs',
+    ]);
+  });
+});

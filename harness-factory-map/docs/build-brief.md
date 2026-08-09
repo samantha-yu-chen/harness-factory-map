@@ -48,6 +48,35 @@ The concentration on `harness-control` is expected and is not a smell: 22 of tho
 
 No file outside a module directory imports from that module's internals. Every module ships one public port and one test that exercises it only through that port, with collaborators injected. When `knowledge` eventually reaches FF1 on index size, extracting it is a directory move and a transport change rather than an excavation.
 
+## What has to be right the first time
+
+This is a nought-to-one build, and the cheapest way to lose it is to design all twenty-nine boundaries for a scale that does not exist yet. Every operation therefore states what changing it later costs, and only two of the three classes are worth design time now.
+
+| Class | Operations | What it means | Design it now? |
+| --- | --- | --- | --- |
+| `rewrite` | 4 | Callers would have to be redesigned around a different model. No migration recovers it. | Yes — this is the shortlist |
+| `migration` | 32 | Available later, but stored data has to be rewritten or backfilled first. | Yes, at the level of the stored shape |
+| `refactor` | 58 | Callers change and nothing stored moves. | **No.** Build the small version |
+
+The four that cannot be recovered:
+
+| Operation | Why it cannot be migrated |
+| --- | --- |
+| `audit-log` · `POST /v1/audit/records` | A tamper-evident chain is the one store that cannot be rewritten, by definition. Every reader of the record shape is stuck with the first one. |
+| `identity-access` · `POST /v1/identity/task-token` | Scope binding is the model every downstream authorisation reads. Moving from task-bound to anything else is not a field change. |
+| `outcome-ledger` · `POST /v1/outcomes` | A dimension nobody recorded cannot be backfilled from the dimensions they did. |
+| `outcome-ledger` · `POST /v1/runs` | Same reason. Decide what a run is attributed to before the first run, or the first quarter of data answers nothing. |
+
+Everything else is deferrable on purpose. Hardening a refactor-class operation against imagined volume is the more common failure of the two and the more expensive one, because nothing fails — the walking skeleton simply never ships.
+
+### The one overrun the map currently holds
+
+`tool-gateway` commits to 80ms of overhead per tool call. The operations it consumes already promise 280ms across four cross-repository round trips: a policy check at 50ms, a token introspection at 30ms, and an audit append at 200ms.
+
+This is not a transport problem and no encoding fixes it. The moves, in order, are: delete the call, merge two questions into one, move it off the synchronous path, and only then make what remains cheaper. The audit append is the largest line and it is a deliberate trade — B5 and B10 mean an unrecorded decision must not take effect — so closing this is a conversation about the recording contract and the shape of the authorisation call, and it is open.
+
+Full reasoning: `docs/architecture-rules.md` § C.
+
 ## Before wave 1 starts
 
 Four decisions are needed. Each blocks work rather than merely informing it.

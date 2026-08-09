@@ -1,6 +1,6 @@
 # Architecture Rules
 
-Two sets of rules: how this repository works, and how the platform it specifies must work.
+Three sets of rules: how this repository works, how the platform it specifies must work, and which of those decisions has to be right before the first version ships.
 
 ## A. Repository rules
 
@@ -145,3 +145,52 @@ The measurable reason: the seven-way split by plane leaves 126 relationships cro
 ### B17. One invocation door
 
 Scheduled runs enter through the same endpoint a person's click does. Two entry paths means two places to enforce the input contract, and the less-exercised one would be carrying the unattended traffic — the traffic with nobody watching.
+
+## C. Scale-readiness rules
+
+Nothing in this platform has been built. Everything in section B describes how it must behave; this section is narrower and answers one question: at nought to one, which decisions have to be right the first time so that one to a hundred is a refactor rather than a rewrite.
+
+It deliberately says nothing about cost, volume, or capacity. Those need traffic to model honestly and belong to a later pass. This one is only about which shapes are expensive to change, which is knowable now and gets harder to change every week after the first run lands.
+
+### C1. A port is a signature, not a wire format
+
+A module's public port is a typed function signature. Whether a call across it is an in-process call, JSON over HTTP, or a binary framing is an adapter detail behind that signature, and changing it must not change a single caller.
+
+This is what makes B16 true rather than aspirational: promoting a module to a service is a directory move plus an adapter, because the seam already exists. It is also why this map names no transport anywhere. That choice stays a refactor for as long as the port holds, and a refactor is not a nought-to-one decision.
+
+### C2. A hot path declares its unit of work, its budget, and a count for every call it makes
+
+A component that runs for every step an agent takes says so with `hot_path`: the one thing it does once, and the p95 overhead it commits to for that thing. Every entry in its `consumes` then states `per_action`.
+
+The generator refuses a hot path with an uncounted call, because a budget nobody can add up cannot be checked and will be quietly widened instead of met.
+
+### C3. A per-action operation publishes a latency budget
+
+`frequency: per-action` requires `p95_ms`, and generation fails without it. This is A13 on a different axis: a monthly range with no volume driver is not reviewable, and a hot-path operation with no stated budget is the same omission on the axis that decides whether the platform is usable at all.
+
+The budget is a commitment, not a measurement. It is what callers are entitled to design against, which is precisely why it has to exist before anyone measures anything.
+
+### C4. A budget overrun is closed by removing round trips before making them cheaper
+
+When a hot path commits to more than its budget, the moves are available in this order, and the order is not negotiable:
+
+1. Delete the call.
+2. Merge two questions into one call.
+3. Move the call off the synchronous path.
+4. Make the remaining calls cheaper.
+
+Only the fourth is a transport question, and it is last because it is worth single-digit milliseconds against problems that are usually three-digit. The map currently holds one overrun — `tool-gateway` commits to 80ms of overhead per tool call and the operations it consumes already promise 280ms across four cross-repository round trips. Nothing about that is fixed by an encoding.
+
+The largest single line in it is the audit append, and that is a deliberate trade rather than an oversight: B5 and B10 together mean a decision that has not been recorded must not take effect. Closing this overrun is therefore a conversation about the recording contract and the authorisation call shape, and it is open rather than settled.
+
+### C5. Retrofit cost decides what gets designed now
+
+Every operation states what changing it later costs. `rewrite` means callers would have to be redesigned around a different model. `migration` means stored data has to be rewritten or backfilled. `refactor` means callers change and nothing stored moves.
+
+Only the first two are designed at nought to one. Four operations in this map are `rewrite`, and they are the shortlist for the design attention this platform actually has: the audit append, because a tamper-evident chain is the one store that cannot be migrated by definition; the task token, because scope binding is the model every downstream authorisation reads; and the two ledger writes, because a dimension nobody recorded cannot be backfilled from a dimension nobody recorded.
+
+The other fifty-eight are refactors. Designing one of them for a scale that does not exist is the more common failure of the two, and it is more expensive than under-engineering because it is invisible — nothing fails, the walking skeleton simply never ships.
+
+### C6. This band is settled before a scale model is worth building
+
+Cost, volume, and capacity modelling assume a system whose shape has stopped moving. Doing that work first produces a precise forecast of a design that is about to change, which reads as rigour and is not. The order is: fix what is expensive to change, ship, measure, then model.
