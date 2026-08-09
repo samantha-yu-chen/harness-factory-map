@@ -22,6 +22,10 @@ export type {
 
 export type ContractKind = 'sync-api' | 'async-event' | 'batch-job' | 'human-decision' | 'query';
 
+export type CallFrequency = 'per-action' | 'per-task' | 'per-run' | 'per-day' | 'rare';
+
+export type RetrofitCost = 'refactor' | 'migration' | 'rewrite';
+
 export interface ApiOperation {
   operation: string;
   kind: ContractKind;
@@ -29,6 +33,9 @@ export interface ApiOperation {
   worker: string;
   request: string;
   response: string;
+  frequency?: CallFrequency;
+  retrofit?: RetrofitCost;
+  p95_ms?: number;
   idempotency?: string;
   timeout?: string;
   auth?: string;
@@ -38,7 +45,13 @@ export interface ApiOperation {
 export interface ConsumedOperation {
   from: string;
   operation: string;
+  per_action?: number;
   note?: string;
+}
+
+export interface HotPath {
+  unit_of_work: string;
+  budget_p95_ms: number;
 }
 
 export type ForcingFunction =
@@ -122,6 +135,7 @@ export interface SpecificationMetadata {
   api_contract: ApiOperation[];
   events_emitted: string[];
   events_consumed: string[];
+  hot_path?: HotPath;
   slo?: ServiceLevelObjective;
   cost?: CostEnvelope;
 }

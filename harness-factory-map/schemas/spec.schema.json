@@ -204,6 +204,11 @@
             "type": "string",
             "minLength": 1
           },
+          "per_action": {
+            "description": "How many times the consumer calls this operation per unit of work on its hot path. Zero means the call happens off the hot path. Required once the consumer declares a hot_path, because a latency budget cannot be checked without a call count.",
+            "type": "integer",
+            "minimum": 0
+          },
           "note": {
             "type": "string"
           }
@@ -400,6 +405,29 @@
             "type": "string",
             "minLength": 1
           },
+          "frequency": {
+            "description": "How often this operation is called, relative to the platform's units of work. per-action is the hot path: once or more for every step a running agent takes.",
+            "enum": [
+              "per-action",
+              "per-task",
+              "per-run",
+              "per-day",
+              "rare"
+            ]
+          },
+          "retrofit": {
+            "description": "What changing this operation's shape costs once it is in production. refactor: callers change, no stored data moves. migration: stored data has to be rewritten or backfilled. rewrite: the change is not available without redesigning callers around a different model. Only migration and rewrite have to be decided at 0-to-1; refactor is deferrable and deciding it early is over-engineering.",
+            "enum": [
+              "refactor",
+              "migration",
+              "rewrite"
+            ]
+          },
+          "p95_ms": {
+            "description": "The latency budget this operation commits to at p95, in milliseconds. A budget, not a measurement — it is what callers are entitled to design against.",
+            "type": "number",
+            "minimum": 0
+          },
           "idempotency": {
             "type": "string"
           },
@@ -431,6 +459,27 @@
       },
       "uniqueItems": true,
       "default": []
+    },
+    "hot_path": {
+      "description": "Declared by a component that sits on a per-action path — one that runs for every step a running agent takes. Naming the unit of work and the overhead budget is what lets the generator add up what this component's own consumes already commit it to spending.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_of_work",
+        "budget_p95_ms"
+      ],
+      "properties": {
+        "unit_of_work": {
+          "description": "The single thing this component does once, against which per_action counts are stated.",
+          "type": "string",
+          "minLength": 1
+        },
+        "budget_p95_ms": {
+          "description": "The p95 overhead this component commits to for one unit of work, excluding time spent inside external systems.",
+          "type": "number",
+          "minimum": 0
+        }
+      }
     },
     "slo": {
       "type": "object",
