@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { ScaleReadinessView } from './ScaleReadinessView';
 import { StageFlow } from './StageFlow';
 import {
   BACKING_LABELS,
@@ -27,6 +28,8 @@ import type { GeneratedEntity, GeneratedStage } from '../types/specification';
 interface EngineeringViewProps {
   onComponentSelect: (item: GeneratedEntity) => void;
 }
+
+type EngineeringTab = 'map' | 'scale';
 
 const RAILS: { label: string; note: string; stages: GeneratedStage[] }[] = [
   { label: 'Platform band', note: 'Always on, read by every stage', stages: PLATFORM_STAGE ? [PLATFORM_STAGE] : [] },
@@ -320,12 +323,31 @@ function SystemDocsPanel({ onSelect }: { onSelect: (item: GeneratedEntity) => vo
   );
 }
 
-export function EngineeringView({ onComponentSelect }: EngineeringViewProps) {
+const ENGINEERING_TABS: { id: EngineeringTab; label: string; sub: string }[] = [
+  { id: 'map', label: 'Specification map', sub: 'stages, contracts, waves, placement' },
+  { id: 'scale', label: 'Scale readiness', sub: 'hot paths, budgets, what to decide now' },
+];
+
+function TabBar({ active, onSelect }: { active: EngineeringTab; onSelect: (tab: EngineeringTab) => void }) {
+  return (
+    <div className="eng-tabs" role="tablist" aria-label="Engineering view">
+      {ENGINEERING_TABS.map((tab) => (
+        <button type="button" role="tab" key={tab.id} aria-selected={active === tab.id}
+          className={active === tab.id ? 'eng-tab active' : 'eng-tab'} onClick={() => onSelect(tab.id)}>
+          <strong>{tab.label}</strong>
+          <span>{tab.sub}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SpecificationMapTab({ onComponentSelect }: EngineeringViewProps) {
   const [stageId, setStageId] = useState(ALL_STAGES[0]?.id);
   const stage = ALL_STAGES.find((item) => item.id === stageId) ?? ALL_STAGES[0];
 
   return (
-    <div className="eng-view">
+    <>
       <section className="panel">
         <div className="panel-head">
           <div>
@@ -355,6 +377,19 @@ export function EngineeringView({ onComponentSelect }: EngineeringViewProps) {
       <CoveragePanel />
       <AzurePanel />
       <SystemDocsPanel onSelect={onComponentSelect} />
+    </>
+  );
+}
+
+export function EngineeringView({ onComponentSelect }: EngineeringViewProps) {
+  const [tab, setTab] = useState<EngineeringTab>('map');
+
+  return (
+    <div className="eng-view">
+      <TabBar active={tab} onSelect={setTab} />
+      {tab === 'map'
+        ? <SpecificationMapTab onComponentSelect={onComponentSelect} />
+        : <ScaleReadinessView />}
     </div>
   );
 }

@@ -28,3 +28,28 @@ describe('app renders both audiences', () => {
     expect(screen.getAllByText('intake/').length).toBeGreaterThan(0);
   });
 });
+
+describe('scale readiness tab', () => {
+  afterEach(() => cleanup());
+
+  it('keeps the specification map as the tab Engineering opens on', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: /Engineering/ }));
+    expect(screen.getByRole('tab', { name: /Specification map/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByRole('heading', { name: /Hot paths/ })).not.toBeInTheDocument();
+  });
+
+  it('shows the hot-path arithmetic and the retrofit split on the second tab', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('tab', { name: /Engineering/ }));
+    await user.click(screen.getByRole('tab', { name: /Scale readiness/ }));
+
+    expect(screen.getByRole('heading', { name: /Hot paths · 4/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Decide now/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Safe to defer/ })).toBeInTheDocument();
+    expect(screen.getByText(/over by 200ms/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Build plan/ })).not.toBeInTheDocument();
+  });
+});

@@ -361,9 +361,58 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
   .coverage-list small { grid-column: 2; text-align: left; }
 }
 
+/* ---------- scale readiness ---------- */
+.eng-tabs { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; display: grid; gap: 2px; grid-template-columns: repeat(2, 1fr); padding: 5px; }
+.eng-tab { background: transparent; border: 0; border-radius: 10px; cursor: pointer; padding: 10px 14px; text-align: left; }
+.eng-tab strong { color: var(--ink-2); display: block; font-size: 0.82rem; }
+.eng-tab span { color: var(--ink-3); font-size: 0.64rem; }
+.eng-tab:hover { background: var(--canvas); }
+.eng-tab.active { background: var(--accent-soft); }
+.eng-tab.active strong { color: var(--accent); }
+
+.hot-grid { display: grid; gap: 12px; }
+.hot-card { background: #fbfcfe; border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: 11px; padding: 14px 16px; }
+.hot-card.over { background: #fdf6f6; border-left-color: var(--danger); }
+.hot-card header { align-items: flex-start; display: flex; gap: 18px; justify-content: space-between; }
+.hot-card h3 { font-size: 0.92rem; margin: 3px 0 0; }
+.hot-verdict { text-align: right; }
+.hot-verdict strong { color: var(--ok); display: block; font-size: 1.3rem; letter-spacing: -0.02em; }
+.hot-card.over .hot-verdict strong { color: var(--danger); }
+.hot-verdict span { color: var(--ink-3); display: block; font-size: 0.63rem; }
+.hot-verdict em { color: var(--danger); display: block; font-size: 0.66rem; font-style: normal; font-weight: 800; margin-top: 3px; }
+.hot-trips { color: var(--ink-2); font-size: 0.74rem; margin: 10px 0 8px; }
+.hot-unpriced { color: var(--warn); font-size: 0.67rem; margin: 8px 0 0; }
+
+.call-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.call-row { align-items: baseline; background: #fff; border: 1px solid var(--line-soft); border-radius: 7px; display: grid; gap: 10px; grid-template-columns: 1fr 62px 96px 130px 62px; padding: 7px 10px; }
+.call-row.off-path { opacity: 0.5; }
+.call-name { color: var(--ink); font-size: 0.71rem; }
+.call-name code { color: var(--ink-3); display: block; font-size: 0.62rem; overflow-wrap: anywhere; }
+.call-count, .call-budget, .call-where { color: var(--ink-3); font-size: 0.63rem; }
+.call-where.crosses { color: var(--warn); font-weight: 700; }
+.call-subtotal { color: var(--ink); font-size: 0.73rem; text-align: right; }
+
+.retrofit-legend { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-bottom: 14px; }
+.retrofit-legend div { background: var(--canvas); border-radius: 9px; padding: 10px 12px; }
+.retrofit-legend p { color: var(--ink-2); font-size: 0.68rem; line-height: 1.5; margin: 6px 0 0; }
+.retrofit-tag { border-radius: 999px; font-size: 0.55rem; font-weight: 900; letter-spacing: 0.06em; padding: 3px 8px; text-transform: uppercase; }
+.retrofit-rewrite { background: #fbe6e6; color: var(--danger); }
+.retrofit-migration { background: #fdf0dd; color: var(--warn); }
+.retrofit-refactor { background: #e7f1ea; color: var(--ok); }
+
+.retrofit-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.retrofit-list li { align-items: baseline; border-radius: 7px; display: grid; gap: 12px; grid-template-columns: 92px 190px 1fr 110px; padding: 6px 9px; }
+.retrofit-list li:nth-child(odd) { background: #fafbfd; }
+.retrofit-owner { color: var(--ink); font-size: 0.72rem; }
+.retrofit-list code { color: var(--ink-2); font-size: 0.68rem; overflow-wrap: anywhere; }
+.retrofit-list small { color: var(--ink-3); font-size: 0.62rem; text-align: right; }
+
 @media (max-width: 800px) {
   .stage-flow, .eng-view .stage-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-row, .wave-grid, .drawer-columns, .owner-callout, .slo-grid, .cost-headline { grid-template-columns: 1fr; }
   .panel-aside { text-align: left; }
   .panel-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .eng-tabs, .retrofit-legend { grid-template-columns: 1fr; }
+  .call-row, .retrofit-list li { grid-template-columns: 1fr; gap: 3px; }
+  .call-subtotal, .retrofit-list small { text-align: left; }
 }

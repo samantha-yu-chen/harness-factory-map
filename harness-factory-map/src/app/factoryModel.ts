@@ -135,6 +135,10 @@ export function entity(id: string): GeneratedEntity | undefined {
   return entityById.get(id);
 }
 
+export function entityName(id: string): string {
+  return entityById.get(id)?.name ?? id;
+}
+
 function resolve(ids: string[]): GeneratedEntity[] {
   return ids.map((id) => entityById.get(id)).filter((item): item is GeneratedEntity => !!item);
 }

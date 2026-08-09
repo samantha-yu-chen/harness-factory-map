@@ -162,3 +162,27 @@ describe('component drawer', () => {
     expect(screen.getByText(/\| Caller \|/)).toBeInTheDocument();
   });
 });
+
+describe('scale readiness report', () => {
+  it('prices every hot path against budgets its providers actually publish', () => {
+    expect(map.scale.hotPaths.length).toBeGreaterThan(0);
+    for (const path of map.scale.hotPaths) {
+      expect(path.unpricedOperations, `${path.componentId} cannot price a call it makes`).toEqual([]);
+      expect(path.budgetP95Ms, `${path.componentId} has no budget`).toBeGreaterThan(0);
+    }
+  });
+
+  it('classifies every published operation by what changing it later costs', () => {
+    expect(map.scale.classifiedCount).toBe(map.scale.operationCount);
+    for (const entry of map.scale.decideNow) {
+      expect(entry.retrofit, `${entry.componentId} ${entry.operation}`).not.toBe('refactor');
+    }
+  });
+
+  it('holds the tool gateway overrun the map found rather than quietly widening the budget', () => {
+    const gateway = map.scale.budgetFindings.find((path) => path.componentId === 'tool-gateway');
+    expect(gateway).toBeDefined();
+    expect(gateway?.committedMs).toBeGreaterThan(gateway?.budgetP95Ms ?? 0);
+    expect(gateway?.crossUnitRoundTrips).toBe(4);
+  });
+});
