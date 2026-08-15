@@ -199,11 +199,20 @@ function addRelation(
 
 function validateRelationTargets(specifications: ParsedFile[], knownIds: Set<string>): void {
   for (const specification of specifications) {
-    const { depends_on: dependsOn, connects_to: connectsTo } = specification.metadata;
+    const { id, depends_on: dependsOn, connects_to: connectsTo } = specification.metadata;
     for (const reference of [...dependsOn, ...connectsTo]) {
       if (!knownIds.has(reference)) {
         throw new SpecificationError(
           `${specification.sourcePath}: unresolved relationship reference "${reference}"`,
+        );
+      }
+      // A self-reference resolves, so the check above waves it through, and the
+      // map gains an edge from a node to itself. Read as a dependency that is
+      // its own prerequisite, it makes the ordering unsatisfiable; read as a
+      // connection, it says nothing at all.
+      if (reference === id) {
+        throw new SpecificationError(
+          `${specification.sourcePath}: relationship reference "${reference}" is the specification itself`,
         );
       }
     }

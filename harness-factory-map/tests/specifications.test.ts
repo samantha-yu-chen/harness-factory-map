@@ -121,6 +121,16 @@ describe('contract-pairing gates', () => {
     expect(() => buildMap([UNIT, PROVIDER, consumer], 'test')).toThrow(/does not publish operation/);
   });
 
+  it('refuses a specification that names itself as a relation', () => {
+    const looping = file({ id: 'provider', deployable_unit: 'unit-one', module: 'core', build_wave: 1 });
+    expect(() => buildMap([UNIT, { ...looping, metadata: { ...looping.metadata, depends_on: ['provider'] } }], 'test')).toThrow(
+      /is the specification itself/,
+    );
+    expect(() => buildMap([UNIT, { ...looping, metadata: { ...looping.metadata, connects_to: ['provider'] } }], 'test')).toThrow(
+      SpecificationError,
+    );
+  });
+
   it('refuses a consumer naming a provider that does not exist', () => {
     const consumer = file({
       id: 'consumer',
