@@ -5,6 +5,12 @@
 > integrity, but do not deepen the obsolete two-loop, route, risk, governance-
 > board, or three-repository target ontology.
 
+The complete and final operating-model SSOT is
+`../../prod-eng-govrn-op-model/docs/v0/greenfield-ai-first-operating-model-v0.10.md`.
+Diagram 1 v0.8 and Diagrams 2 and 3 v0.10 are companion views only. P3 work in
+this package extracts legacy behaviour; P5 target conformance is owned by the
+operating-model repository.
+
 ## What this repository is
 
 A local specification-map experiment for an earlier enterprise Agent Factory.
@@ -13,8 +19,9 @@ The current contents are historical implementation research, not the target
 architecture.
 
 It is a specification tool, not a system. Nothing here executes an Agent, holds
-a credential, or calls a cloud service. It also does not override the hybrid
-SSOT in `../../prod-eng-govrn-op-model`.
+a credential, or calls a cloud service. It does not override v0.10, and its
+Agent Factory components or deployable-unit specifications do not define
+evidence-derived production rooms.
 
 ## What the deliverable is
 
@@ -36,8 +43,9 @@ A change to `specs/` that does not survive `npm run generate` has not happened.
 - Express reuse with `serves_stages` rather than writing a second component. The runtime loop deliberately runs on factory machinery.
 - Write specification bodies for someone who has to build the thing. State the failure mode being designed against, not just the happy path.
 - Prefer changes that extract reusable validation rules or make historical
-  status clearer. A hybrid-model remap requires a separately approved schema
-  migration; do not incrementally rename old entities until they look current.
+  status clearer. Label P3 exports as legacy behaviour. Do not incrementally
+  rename old entities until they look current, and do not derive P5 v0.10
+  conformance rules in this repository.
 
 ## Do not
 

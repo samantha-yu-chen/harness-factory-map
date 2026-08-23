@@ -2,12 +2,16 @@
 
 > **Current direction:** the rendered map is a tested draft from an earlier
 > Agent Factory ontology. It is not the current target operating model. Preserve
-> the specification validator and architecture-analysis mechanisms; do not use
+> it as a validator and mapping-findings oracle; do not use
 > the 13 stages, 29 components, two loops, three routes, risk fields, or three
-> proposed repositories as hybrid-SSOT authority. See
+> proposed repositories as operating-model authority or production room
+> boundaries. The complete v0.10 Markdown in the sibling
+> `prod-eng-govrn-op-model` repository is final SSOT. See
 > [`CURRENT-DIRECTION.md`](CURRENT-DIRECTION.md).
 
-A local application that turns Markdown specifications into an inspectable map of an enterprise agent platform: a governed path from any employee's request to an agent that is built, published, and then run — repeatedly, by the people who need it — with a named human accountable at every decision point.
+A local application that turns Markdown specifications into an inspectable map
+of an earlier enterprise agent-platform proposal. The description and counts
+below document that experiment; they are not v0.10 requirements.
 
 It is a specification map. It runs no agents, holds no credentials, and calls no cloud service.
 

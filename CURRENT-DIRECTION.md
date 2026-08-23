@@ -3,11 +3,17 @@
 ## Status
 
 The current rendered Enterprise Agent Factory map is a validated historical
-draft. It is useful evidence about architecture specification and repository
-analysis. It is not the hybrid operating-model implementation specification.
+draft. It is useful as a validator and mapping-findings oracle: it preserves
+reproducible examples of architecture specification, relationship checks,
+cost/latency accounting, and repository analysis. It is not the operating-model
+implementation specification.
 
-The current source of truth is the sibling `prod-eng-govrn-op-model` repository:
-v0.8 narrative and Diagram 1, plus v0.10 Diagrams 2 and 3.
+The complete and final operating-model SSOT is sibling document
+`../prod-eng-govrn-op-model/docs/v0/greenfield-ai-first-operating-model-v0.10.md`.
+Diagram 1 v0.8 is the unchanged Delivery companion view referenced by v0.10;
+Diagrams 2 and 3 v0.10 are the one-loop and Outcome companion views. The
+diagrams explain the model but do not define authority. If this map, any
+diagram, or an older draft conflicts with the v0.10 Markdown, v0.10 wins.
 
 ## Retain
 
@@ -36,22 +42,22 @@ v0.8 narrative and Diagram 1, plus v0.10 Diagrams 2 and 3.
   `harness-platform-core` split as an approved final topology;
 - Azure placement and current cost rollups as implementation commitments.
 
-## Next permitted direction
+## Migration boundary
 
-Do not try to transform the current map through piecemeal renames. A future
-hybrid remap should start with a new schema version and migration fixtures that
-can represent:
+Do not try to transform the current map through piecemeal renames. In P3 this
+repository exports ontology-neutral fixtures for behaviour that the current
+validator actually proves. Those fixtures are legacy evidence, not target-model
+conformance and not a proposal for a new schema.
 
-- one loop and four case packs;
-- three actors;
-- four consequence classes and rollback grade;
-- Change, Artifact and Outcome identities;
-- Activation as a boundary event;
-- trust zones and authority ownership;
-- evidence-derived rooms, distinct from repository placement.
+The root operating-model repository derives v0.10 conformance cases in P5. A
+future Python implementation consumes the retained P3 fixtures plus applicable
+P5 cases only after its boundary is approved. It must not translate this
+repository's component tree, proposed repository split, or schema file by file.
 
-Until that work is explicitly started, keep the current map reproducible and
-clearly historical.
+Rooms are discovered from change co-occurrence, state write-set, context
+footprint, contract churn, and cross-module repair evidence. The Agent Factory
+ontology, `specs/units/`, and the current repository layout do not establish
+production room boundaries.
 
 ## Next safe coding task
 
@@ -59,4 +65,5 @@ Extract ontology-neutral validator fixtures for duplicate authoritative owners,
 unresolved/self relationships, provider-consumer drift, event drift, missing
 cost drivers, hot-path accounting and repository forcing functions. The output
 should be JSON inputs plus expected findings that a later Python map validator
-can replay. Do not design the v2 hybrid schema in the same change.
+can replay. Label every exported rule `legacy_behaviour`; do not derive v0.10
+invariants or design a replacement schema in the same change.

@@ -2,10 +2,14 @@
 
 > **Current direction:** this application renders a historical draft. Its
 > validation machinery remains useful; its current Agent Factory ontology is not
-> the hybrid-SSOT target. Read [`../CURRENT-DIRECTION.md`](../CURRENT-DIRECTION.md)
-> before changing specifications.
+> the target. Its proposed repositories and current layout are not production
+> rooms. The sibling operating-model repository's complete v0.10 Markdown is
+> final SSOT. Read [`../CURRENT-DIRECTION.md`](../CURRENT-DIRECTION.md) before
+> changing specifications.
 
-A local application that turns Markdown specifications into an inspectable map of an enterprise agent platform: a governed path from any employee's request to an agent that is built, published, and then run — repeatedly, by the people who need it — with a named human accountable at every decision point.
+A local application that turns Markdown specifications into an inspectable map
+of an earlier enterprise agent-platform proposal. The description and counts
+below document that experiment; they are not v0.10 requirements.
 
 It is a specification map. It runs no agents, holds no credentials, and calls no cloud service.
 
