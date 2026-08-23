@@ -1,4 +1,9 @@
-# AGENTS.md
+# Historical 3D-prototype brief
+
+> **Superseded for current work.** Claude must read `AGENTS.md` and
+> `CURRENT-DIRECTION.md` first. This file records an older presentation brief;
+> it does not authorise rebuilding the current specification map as a 3D Agent
+> Factory or extending that ontology.
 
 ## Mission
 

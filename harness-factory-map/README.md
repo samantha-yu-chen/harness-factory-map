@@ -1,4 +1,9 @@
-# Enterprise Agent Factory — specification map
+# Enterprise Agent Factory — legacy specification-map experiment
+
+> **Current direction:** this application renders a historical draft. Its
+> validation machinery remains useful; its current Agent Factory ontology is not
+> the hybrid-SSOT target. Read [`../CURRENT-DIRECTION.md`](../CURRENT-DIRECTION.md)
+> before changing specifications.
 
 A local application that turns Markdown specifications into an inspectable map of an enterprise agent platform: a governed path from any employee's request to an agent that is built, published, and then run — repeatedly, by the people who need it — with a named human accountable at every decision point.
 

@@ -1,14 +1,26 @@
 # AGENTS.md
 
+> **Current direction:** this file originally governed expansion of the Agent
+> Factory map. Read `../CURRENT-DIRECTION.md` first. Preserve validator and map
+> integrity, but do not deepen the obsolete two-loop, route, risk, governance-
+> board, or three-repository target ontology.
+
 ## What this repository is
 
-A local specification map for an enterprise agent factory. It reads Markdown under `specs/`, validates it, and renders it for two audiences: a leadership team deciding whether to fund the platform, and an engineering harness team building it.
+A local specification-map experiment for an earlier enterprise Agent Factory.
+It reads Markdown under `specs/`, validates it, and renders it for two audiences.
+The current contents are historical implementation research, not the target
+architecture.
 
-It is a specification, not a system. Nothing here executes an agent, holds a credential, or calls a cloud service.
+It is a specification tool, not a system. Nothing here executes an Agent, holds
+a credential, or calls a cloud service. It also does not override the hybrid
+SSOT in `../../prod-eng-govrn-op-model`.
 
 ## What the deliverable is
 
-The rendered map, not the Markdown. The Markdown files are working material — editable, arguable, expected to change. What the harness team picks up is the validated, cross-checked map: 29 components across 13 stages in two loops, each with a boundary, an API contract, a named accountable human, a failure behaviour, and a cost.
+For the legacy experiment, the rendered map is the generated deliverable and the
+Markdown is its source. The generated output may describe 29 components across
+13 stages, but those counts and stages are not current product requirements.
 
 A change to `specs/` that does not survive `npm run generate` has not happened.
 
@@ -23,6 +35,9 @@ A change to `specs/` that does not survive `npm run generate` has not happened.
 - Give every stage a `loop`. Runtime stages declare no `reference_elements` — they are beyond the reference diagram, and the generator enforces it.
 - Express reuse with `serves_stages` rather than writing a second component. The runtime loop deliberately runs on factory machinery.
 - Write specification bodies for someone who has to build the thing. State the failure mode being designed against, not just the happy path.
+- Prefer changes that extract reusable validation rules or make historical
+  status clearer. A hybrid-model remap requires a separately approved schema
+  migration; do not incrementally rename old entities until they look current.
 
 ## Do not
 
@@ -34,6 +49,9 @@ A change to `specs/` that does not survive `npm run generate` has not happened.
 - Do not give the runtime loop its own execution components. If production needs something stage 6 does not have, fix stage 6.
 - Do not write a cost estimate without its assumed volume.
 - Do not let a component own an authoritative data object another component already owns. The generator rejects it.
+- Do not present `factory` versus `runtime`, the three execution routes, risk
+  levels, `agent-autonomous`, or the Governance Board as current SSOT concepts.
+- Do not treat the deployable-unit specifications as evidence-derived rooms.
 
 ## What the generator refuses
 
