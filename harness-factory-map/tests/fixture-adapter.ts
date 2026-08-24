@@ -301,6 +301,7 @@ interface RefusalInput {
   result: JsonObject;
   owner: string;
   exitCondition: string;
+  success?: ExpectedInput;
 }
 
 function expectedBuildRefusal(
@@ -309,6 +310,7 @@ function expectedBuildRefusal(
 ): NormalizedExpected {
   try {
     buildMap(specifications(given), 'fixture-schema');
+    if (input.success) return expected(input.success);
     return expected({
       kind: 'failed',
       code: `${input.code}_NOT_DETECTED`,
@@ -346,6 +348,11 @@ function duplicateOwnerExpected(given: JsonObject): NormalizedExpected {
     result: { admitted: false, object, claimants },
     owner: 'harness-factory-map.specification-author',
     exitCondition: 'harness-factory-map.single-authoritative-owner-declared',
+    success: {
+      kind: 'allowed',
+      code: 'SINGLE_AUTHORITATIVE_OWNER_ACCEPTED',
+      result: { admitted: true, object, owner: claimants[0] },
+    },
   });
 }
 
@@ -363,6 +370,11 @@ function unresolvedRelationshipExpected(given: JsonObject): NormalizedExpected {
     result: { admitted: false, source: input?.metadata.id, target },
     owner: 'harness-factory-map.specification-author',
     exitCondition: 'harness-factory-map.relationship-target-resolved',
+    success: {
+      kind: 'allowed',
+      code: 'RELATIONSHIP_TARGET_RESOLVED',
+      result: { admitted: true, source: input?.metadata.id, target },
+    },
   });
 }
 
@@ -374,6 +386,8 @@ function selfRelationshipExpected(given: JsonObject): NormalizedExpected {
   const relation = input?.metadata.depends_on.length
     ? 'depends_on'
     : 'connects_to';
+  const target =
+    input?.metadata.depends_on[0] ?? input?.metadata.connects_to[0];
   return expectedBuildRefusal(given, {
     message: /is the specification itself/,
     kind: 'unmet_prerequisite',
@@ -381,6 +395,11 @@ function selfRelationshipExpected(given: JsonObject): NormalizedExpected {
     result: { admitted: false, source: input?.metadata.id, relation },
     owner: 'harness-factory-map.specification-author',
     exitCondition: 'harness-factory-map.non-self-relationship-declared',
+    success: {
+      kind: 'allowed',
+      code: 'NON_SELF_RELATIONSHIP_ACCEPTED',
+      result: { admitted: true, source: input?.metadata.id, target, relation },
+    },
   });
 }
 
@@ -400,6 +419,16 @@ function operationDriftExpected(given: JsonObject): NormalizedExpected {
     },
     owner: 'harness-factory-map.contract-author',
     exitCondition: 'harness-factory-map.provider-consumer-operation-aligned',
+    success: {
+      kind: 'allowed',
+      code: 'PROVIDER_CONSUMER_OPERATION_ALIGNED',
+      result: {
+        admitted: true,
+        consumer: consumer?.metadata.id,
+        provider: consumed?.from,
+        operation: consumed?.operation,
+      },
+    },
   });
 }
 
@@ -419,6 +448,15 @@ function eventDriftExpected(given: JsonObject): NormalizedExpected {
     owner: 'harness-factory-map.integration-author',
     exitCondition:
       'harness-factory-map.event-emitter-or-external-origin-declared',
+    success: {
+      kind: 'allowed',
+      code: 'EVENT_PRODUCER_CONSUMER_ALIGNED',
+      result: {
+        admitted: true,
+        consumer: consumer?.metadata.id,
+        event: consumer?.metadata.events_consumed[0],
+      },
+    },
   });
 }
 
@@ -429,7 +467,12 @@ async function missingCostDriverExpected(
   if (!parsed) return inputRefused();
   const metadata = structuredClone(parsed.metadata) as unknown as JsonObject;
   const cost = asObject(metadata.cost, 'specification.cost');
-  delete cost.driver;
+  const rawSpecification = asObject(
+    asArray(given.specifications, 'given.specifications')[0],
+    'specification',
+  );
+  const rawCost = asObject(rawSpecification.cost, 'specification.cost');
+  if (rawCost.driver === undefined) delete cost.driver;
   const directory = await mkdtemp(join(tmpdir(), 'factory-map-cost-fixture-'));
   const filePath = join(directory, `${parsed.metadata.id}.md`);
   try {
@@ -437,11 +480,13 @@ async function missingCostDriverExpected(
     try {
       await parseSpecification(filePath, directory);
       return expected({
-        kind: 'failed',
-        code: 'MISSING_COST_DRIVER_NOT_DETECTED',
-        result: { admitted: true, finding_detected: false },
-        owner: 'harness-factory-map.maintainer',
-        exitCondition: 'harness-factory-map.cost-driver-rule-restored',
+        kind: 'allowed',
+        code: 'COST_DRIVER_ACCEPTED',
+        result: {
+          admitted: true,
+          component: parsed.metadata.id,
+          driver: rawCost.driver,
+        },
       });
     } catch (error) {
       if (
@@ -487,6 +532,18 @@ function hotPathCountExpected(given: JsonObject): NormalizedExpected {
     },
     owner: 'harness-factory-map.performance-author',
     exitCondition: 'harness-factory-map.hot-path-call-count-provided',
+    success: {
+      kind: 'allowed',
+      code: 'HOT_PATH_CALL_COUNT_ACCEPTED',
+      result: {
+        admitted: true,
+        component: consumer?.metadata.id,
+        call_count: consumer?.metadata.consumes.reduce(
+          (total, entry) => total + (entry.per_action ?? 0),
+          0,
+        ),
+      },
+    },
   });
 }
 
@@ -762,6 +819,121 @@ const SMOKE_CASES: Array<{
     disposition: {
       outcome: 'BLOCK',
       code: 'REPOSITORY_FORCING_FUNCTION_BLOCKED',
+    },
+  },
+  {
+    rule: 'harness-factory-map.rule.duplicate-authoritative-owner',
+    given: {
+      specifications: [
+        { id: 'a', data_owned: ['record'] },
+        { id: 'b', data_owned: [] },
+      ],
+    },
+    when: { operation: 'harness-factory-map.validation.duplicate-owner' },
+    disposition: {
+      outcome: 'ALLOW',
+      code: 'SINGLE_AUTHORITATIVE_OWNER_ACCEPTED',
+    },
+  },
+  {
+    rule: 'harness-factory-map.rule.unresolved-relationship',
+    given: {
+      specifications: [{ id: 'a', depends_on: ['b'] }, { id: 'b' }],
+    },
+    when: {
+      operation: 'harness-factory-map.validation.unresolved-relationship',
+    },
+    disposition: { outcome: 'ALLOW', code: 'RELATIONSHIP_TARGET_RESOLVED' },
+  },
+  {
+    rule: 'harness-factory-map.rule.self-relationship',
+    given: {
+      specifications: [{ id: 'a', depends_on: ['b'] }, { id: 'b' }],
+    },
+    when: { operation: 'harness-factory-map.validation.self-relationship' },
+    disposition: { outcome: 'ALLOW', code: 'NON_SELF_RELATIONSHIP_ACCEPTED' },
+  },
+  {
+    rule: 'harness-factory-map.rule.provider-consumer-operation-drift',
+    given: {
+      specifications: [
+        { id: 'provider', operations: [{ name: 'POST /items' }] },
+        {
+          id: 'consumer',
+          consumes: [{ from: 'provider', operation: 'POST /items' }],
+        },
+      ],
+    },
+    when: { operation: 'harness-factory-map.validation.operation-drift' },
+    disposition: {
+      outcome: 'ALLOW',
+      code: 'PROVIDER_CONSUMER_OPERATION_ALIGNED',
+    },
+  },
+  {
+    rule: 'harness-factory-map.rule.event-drift',
+    given: {
+      specifications: [
+        { id: 'producer', events_emitted: ['record.changed'] },
+        { id: 'consumer', events_consumed: ['record.changed'] },
+      ],
+    },
+    when: { operation: 'harness-factory-map.validation.event-drift' },
+    disposition: { outcome: 'ALLOW', code: 'EVENT_PRODUCER_CONSUMER_ALIGNED' },
+  },
+  {
+    rule: 'harness-factory-map.rule.missing-cost-driver',
+    given: {
+      specifications: [
+        {
+          id: 'metered',
+          cost: {
+            monthly_usd_low: 1,
+            monthly_usd_high: 2,
+            driver: 'one synthetic action',
+          },
+        },
+      ],
+    },
+    when: { operation: 'harness-factory-map.validation.cost-driver' },
+    disposition: { outcome: 'ALLOW', code: 'COST_DRIVER_ACCEPTED' },
+  },
+  {
+    rule: 'harness-factory-map.rule.hot-path-call-count',
+    given: {
+      specifications: [
+        { id: 'provider', operations: [{ name: 'POST /check', p95_ms: 5 }] },
+        {
+          id: 'consumer',
+          hot_path: { unit_of_work: 'one action', budget_p95_ms: 10 },
+          consumes: [
+            { from: 'provider', operation: 'POST /check', per_action: 1 },
+          ],
+        },
+      ],
+    },
+    when: { operation: 'harness-factory-map.validation.hot-path-call-count' },
+    disposition: { outcome: 'ALLOW', code: 'HOT_PATH_CALL_COUNT_ACCEPTED' },
+  },
+  {
+    rule: 'harness-factory-map.rule.repository-forcing-function',
+    given: {
+      specifications: [
+        {
+          id: 'boundary',
+          boundary: true,
+          repository: 'repo',
+          forcing_function: 'host',
+          modules: ['core'],
+        },
+      ],
+    },
+    when: {
+      operation: 'harness-factory-map.validation.repository-forcing-function',
+    },
+    disposition: {
+      outcome: 'ALLOW',
+      code: 'REPOSITORY_FORCING_FUNCTION_ACCEPTED',
     },
   },
 ];
