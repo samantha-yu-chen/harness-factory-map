@@ -2,7 +2,7 @@ import { deepStrictEqual } from 'node:assert';
 import { execFileSync } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import matter from 'gray-matter';
 
@@ -993,7 +993,7 @@ export const NORMALIZATION_RULES = {
 
 function git(args: string[]): string {
   return execFileSync('git', args, {
-    cwd: new URL('../..', import.meta.url),
+    cwd: resolve(process.cwd(), '..'),
     encoding: 'utf8',
   }).trim();
 }
