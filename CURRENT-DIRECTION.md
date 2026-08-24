@@ -152,7 +152,33 @@ forcing-function findings under fixture contract v3.0. Each negative case has
 an executable accepted recovery, and budget overruns remain report-only. See
 `docs/EXPERIMENT-FIXTURE-EXPORT.md`.
 
-The next safe task is independent review and root catalogue adjudication. Do
-not extend the Agent Factory ontology, treat synthetic unit inputs as room
-evidence, add runtime infrastructure, or assign a future Python owner while
-that review is pending.
+> **Superseded by the accepted P4 outcome.** This section previously named
+> "independent review and root catalogue adjudication" as the next safe task.
+> That review is complete and the catalogue is adjudicated; see § P4 outcome.
+> The paragraph is retained as history, not as current instruction.
+
+The next safe task is to **hold the map and its validators stable while P5
+derives the v0.10 conformance invariants in the operating-model repository.**
+This repository contributes no further migration deliverable until P5 lands.
+The correct posture is stability: the 18 catalogued fixtures and the pinned
+executable revisions behind them must keep reproducing exactly what P4
+recorded.
+
+Local work is limited to safety and correctness fixes that do not change
+exported fixture behaviour. A change that alters any fixture's observed
+outcome, code, structured result, owner, exit condition or invalidation list
+is not a correctness fix — it invalidates the accepted P4 provenance and must
+be raised in the operating-model repository first.
+
+Explicitly still forbidden:
+
+- extending the Agent Factory ontology;
+- treating synthetic unit inputs as room evidence;
+- defining production room boundaries from the current repository layout;
+- adding runtime infrastructure;
+- assigning a future repository or runtime owner;
+- deleting legacy code;
+- creating any missing Python repository.
+
+P6 — not this repository — may later recommend the first Python boundary and
+its initial vertical slice. Repository creation remains manual.
