@@ -1,0 +1,40 @@
+{
+  "fixture_version": "3.0",
+  "fixture_id": "harness-factory-map.event-drift-blocked",
+  "source_repository": "harness-factory-map",
+  "capability": "architecture-map.event-compatibility",
+  "status": "legacy_behaviour",
+  "given": {
+    "specifications": [
+      { "id": "consumer-alpha", "events_consumed": ["record.changed"] }
+    ]
+  },
+  "when": { "operation": "harness-factory-map.validation.event-drift" },
+  "expected": {
+    "outcome": "BLOCK",
+    "code": "EVENT_PRODUCER_CONSUMER_DRIFT_BLOCKED",
+    "result": {
+      "admitted": false,
+      "consumer": "consumer-alpha",
+      "event": "record.changed"
+    },
+    "owner": "harness-factory-map.integration-author",
+    "exit_condition": "harness-factory-map.event-emitter-or-external-origin-declared",
+    "invalidated_evidence": []
+  },
+  "invariants": ["architecture-map.consumed-event-has-origin"],
+  "legacy_context": {
+    "adapter": {
+      "id": "harness-factory-map.fixture-adapter.v3",
+      "source_revision": "68d727c30a96cb8e046de2ce38fa9ee69af17e1e",
+      "source_tests": ["harness-factory-map.test.fixture-adapter-registry"],
+      "source_rules": ["harness-factory-map.rule.event-drift"],
+      "verifier_rule": "harness-factory-map.verify.fixture-v3",
+      "outcome_rule": "harness-factory-map.normalize.outcome-v3",
+      "result_rule": "harness-factory-map.normalize.result-v3",
+      "recovery_rule": "harness-factory-map.normalize.recovery-v3",
+      "invalidated_evidence_rule": "none"
+    },
+    "normalization": "Adapter-derived shared outcome and recovery metadata: an event with no declared origin is a known integration prerequisite and maps to BLOCK."
+  }
+}

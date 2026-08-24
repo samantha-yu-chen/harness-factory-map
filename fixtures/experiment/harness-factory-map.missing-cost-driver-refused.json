@@ -1,0 +1,43 @@
+{
+  "fixture_version": "3.0",
+  "fixture_id": "harness-factory-map.missing-cost-driver-refused",
+  "source_repository": "harness-factory-map",
+  "capability": "architecture-map.cost-driver-validation",
+  "status": "legacy_behaviour",
+  "given": {
+    "specifications": [
+      {
+        "id": "metered-alpha",
+        "cost": { "monthly_usd_low": 10, "monthly_usd_high": 20 }
+      }
+    ]
+  },
+  "when": { "operation": "harness-factory-map.validation.cost-driver" },
+  "expected": {
+    "outcome": "REFUSE",
+    "code": "MISSING_COST_DRIVER_REFUSED",
+    "result": {
+      "admitted": false,
+      "component": "metered-alpha",
+      "missing_field": "cost.driver"
+    },
+    "owner": "harness-factory-map.cost-author",
+    "exit_condition": "harness-factory-map.cost-volume-driver-provided",
+    "invalidated_evidence": []
+  },
+  "invariants": ["architecture-map.cost-estimate-names-volume-driver"],
+  "legacy_context": {
+    "adapter": {
+      "id": "harness-factory-map.fixture-adapter.v3",
+      "source_revision": "68d727c30a96cb8e046de2ce38fa9ee69af17e1e",
+      "source_tests": ["harness-factory-map.test.fixture-adapter-registry"],
+      "source_rules": ["harness-factory-map.rule.missing-cost-driver"],
+      "verifier_rule": "harness-factory-map.verify.fixture-v3",
+      "outcome_rule": "harness-factory-map.normalize.outcome-v3",
+      "result_rule": "harness-factory-map.normalize.result-v3",
+      "recovery_rule": "harness-factory-map.normalize.recovery-v3",
+      "invalidated_evidence_rule": "none"
+    },
+    "normalization": "Adapter-derived shared outcome and recovery metadata: a cost range without its volume driver is unevaluable and maps to REFUSE."
+  }
+}

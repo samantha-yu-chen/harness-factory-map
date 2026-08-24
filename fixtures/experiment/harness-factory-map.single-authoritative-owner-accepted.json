@@ -1,0 +1,43 @@
+{
+  "fixture_version": "3.0",
+  "fixture_id": "harness-factory-map.single-authoritative-owner-accepted",
+  "source_repository": "harness-factory-map",
+  "capability": "architecture-map.authoritative-owner-validation",
+  "status": "legacy_behaviour",
+  "given": {
+    "specifications": [
+      { "id": "owner-alpha", "data_owned": ["record-alpha"] },
+      { "id": "observer-beta", "data_owned": [] }
+    ]
+  },
+  "when": { "operation": "harness-factory-map.validation.duplicate-owner" },
+  "expected": {
+    "outcome": "ALLOW",
+    "code": "SINGLE_AUTHORITATIVE_OWNER_ACCEPTED",
+    "result": {
+      "admitted": true,
+      "object": "record-alpha",
+      "owner": "owner-alpha"
+    },
+    "owner": "none",
+    "exit_condition": "none",
+    "invalidated_evidence": []
+  },
+  "invariants": ["architecture-map.one-authoritative-owner"],
+  "legacy_context": {
+    "adapter": {
+      "id": "harness-factory-map.fixture-adapter.v3",
+      "source_revision": "68d727c30a96cb8e046de2ce38fa9ee69af17e1e",
+      "source_tests": ["harness-factory-map.test.fixture-adapter-registry"],
+      "source_rules": [
+        "harness-factory-map.rule.duplicate-authoritative-owner"
+      ],
+      "verifier_rule": "harness-factory-map.verify.fixture-v3",
+      "outcome_rule": "harness-factory-map.normalize.outcome-v3",
+      "result_rule": "harness-factory-map.normalize.result-v3",
+      "recovery_rule": "harness-factory-map.normalize.recovery-v3",
+      "invalidated_evidence_rule": "none"
+    },
+    "normalization": "Adapter-derived shared outcome and recovery metadata: the executable recovery accepts one legacy owner without assigning target ownership."
+  }
+}

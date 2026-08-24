@@ -1,0 +1,109 @@
+{
+  "fixture_version": "3.0",
+  "fixture_id": "harness-factory-map.hot-path-accounting-passed",
+  "source_repository": "harness-factory-map",
+  "capability": "architecture-map.hot-path-accounting",
+  "status": "legacy_behaviour",
+  "given": {
+    "specifications": [
+      {
+        "id": "boundary-alpha",
+        "boundary": true,
+        "repository": "repo-alpha",
+        "forcing_function": "host",
+        "modules": ["core"]
+      },
+      {
+        "id": "boundary-beta",
+        "boundary": true,
+        "repository": "repo-beta",
+        "forcing_function": "host",
+        "modules": ["core"]
+      },
+      {
+        "id": "remote-provider",
+        "unit": "boundary-beta",
+        "module": "core",
+        "build_wave": 1,
+        "operations": [{ "name": "POST /remote", "p95_ms": 50 }]
+      },
+      {
+        "id": "local-provider",
+        "unit": "boundary-alpha",
+        "module": "core",
+        "build_wave": 1,
+        "operations": [{ "name": "POST /local", "p95_ms": 5 }]
+      },
+      {
+        "id": "consumer-alpha",
+        "unit": "boundary-alpha",
+        "module": "core",
+        "build_wave": 1,
+        "hot_path": { "unit_of_work": "one action", "budget_p95_ms": 80 },
+        "consumes": [
+          {
+            "from": "remote-provider",
+            "operation": "POST /remote",
+            "per_action": 1
+          },
+          {
+            "from": "local-provider",
+            "operation": "POST /local",
+            "per_action": 3
+          }
+        ]
+      }
+    ]
+  },
+  "when": { "operation": "harness-factory-map.analysis.hot-path-accounting" },
+  "expected": {
+    "outcome": "PASS",
+    "code": "HOT_PATH_ACCOUNTING_PASSED",
+    "result": {
+      "component": "consumer-alpha",
+      "unit_of_work": "one action",
+      "budget_p95_ms": 80,
+      "calls": [
+        {
+          "provider": "remote-provider",
+          "operation": "POST /remote",
+          "per_action": 1,
+          "crosses_boundary": true,
+          "p95_ms": 50,
+          "subtotal_ms": 50
+        },
+        {
+          "provider": "local-provider",
+          "operation": "POST /local",
+          "per_action": 3,
+          "crosses_boundary": false,
+          "p95_ms": 5,
+          "subtotal_ms": 15
+        }
+      ],
+      "round_trips": 4,
+      "cross_boundary_round_trips": 1,
+      "committed_ms": 65,
+      "unpriced_operations": [],
+      "over_budget_ms": 0
+    },
+    "owner": "none",
+    "exit_condition": "none",
+    "invalidated_evidence": []
+  },
+  "invariants": ["architecture-map.hot-path-accounting-complete"],
+  "legacy_context": {
+    "adapter": {
+      "id": "harness-factory-map.fixture-adapter.v3",
+      "source_revision": "68d727c30a96cb8e046de2ce38fa9ee69af17e1e",
+      "source_tests": ["harness-factory-map.test.fixture-adapter-registry"],
+      "source_rules": ["harness-factory-map.rule.hot-path-accounting"],
+      "verifier_rule": "harness-factory-map.verify.fixture-v3",
+      "outcome_rule": "harness-factory-map.normalize.outcome-v3",
+      "result_rule": "harness-factory-map.normalize.result-v3",
+      "recovery_rule": "harness-factory-map.normalize.recovery-v3",
+      "invalidated_evidence_rule": "none"
+    },
+    "normalization": "Adapter-derived shared outcome and recovery metadata: PASS preserves exact legacy call arithmetic; synthetic boundaries are not production rooms."
+  }
+}

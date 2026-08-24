@@ -1,0 +1,49 @@
+{
+  "fixture_version": "3.0",
+  "fixture_id": "harness-factory-map.operation-drift-blocked",
+  "source_repository": "harness-factory-map",
+  "capability": "architecture-map.operation-compatibility",
+  "status": "legacy_behaviour",
+  "given": {
+    "specifications": [
+      { "id": "provider-alpha", "operations": [{ "name": "POST /items" }] },
+      {
+        "id": "consumer-beta",
+        "consumes": [
+          { "from": "provider-alpha", "operation": "POST /withdrawn" }
+        ]
+      }
+    ]
+  },
+  "when": { "operation": "harness-factory-map.validation.operation-drift" },
+  "expected": {
+    "outcome": "BLOCK",
+    "code": "PROVIDER_CONSUMER_OPERATION_DRIFT_BLOCKED",
+    "result": {
+      "admitted": false,
+      "consumer": "consumer-beta",
+      "provider": "provider-alpha",
+      "operation": "POST /withdrawn"
+    },
+    "owner": "harness-factory-map.contract-author",
+    "exit_condition": "harness-factory-map.provider-consumer-operation-aligned",
+    "invalidated_evidence": []
+  },
+  "invariants": ["architecture-map.provider-consumer-operation-compatible"],
+  "legacy_context": {
+    "adapter": {
+      "id": "harness-factory-map.fixture-adapter.v3",
+      "source_revision": "68d727c30a96cb8e046de2ce38fa9ee69af17e1e",
+      "source_tests": ["harness-factory-map.test.fixture-adapter-registry"],
+      "source_rules": [
+        "harness-factory-map.rule.provider-consumer-operation-drift"
+      ],
+      "verifier_rule": "harness-factory-map.verify.fixture-v3",
+      "outcome_rule": "harness-factory-map.normalize.outcome-v3",
+      "result_rule": "harness-factory-map.normalize.result-v3",
+      "recovery_rule": "harness-factory-map.normalize.recovery-v3",
+      "invalidated_evidence_rule": "none"
+    },
+    "normalization": "Adapter-derived shared outcome and recovery metadata: a known provider/consumer mismatch maps to BLOCK until both sides name one operation."
+  }
+}
