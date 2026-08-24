@@ -1,0 +1,42 @@
+{
+  "fixture_version": "3.0",
+  "fixture_id": "harness-factory-map.unresolved-relationship-refused",
+  "source_repository": "harness-factory-map",
+  "capability": "architecture-map.relationship-validation",
+  "status": "legacy_behaviour",
+  "given": {
+    "specifications": [
+      { "id": "consumer-alpha", "depends_on": ["missing-provider"] }
+    ]
+  },
+  "when": {
+    "operation": "harness-factory-map.validation.unresolved-relationship"
+  },
+  "expected": {
+    "outcome": "REFUSE",
+    "code": "UNRESOLVED_RELATIONSHIP_REFUSED",
+    "result": {
+      "admitted": false,
+      "source": "consumer-alpha",
+      "target": "missing-provider"
+    },
+    "owner": "harness-factory-map.specification-author",
+    "exit_condition": "harness-factory-map.relationship-target-resolved",
+    "invalidated_evidence": []
+  },
+  "invariants": ["architecture-map.relationship-target-exists"],
+  "legacy_context": {
+    "adapter": {
+      "id": "harness-factory-map.fixture-adapter.v3",
+      "source_revision": "68d727c30a96cb8e046de2ce38fa9ee69af17e1e",
+      "source_tests": ["harness-factory-map.test.fixture-adapter-registry"],
+      "source_rules": ["harness-factory-map.rule.unresolved-relationship"],
+      "verifier_rule": "harness-factory-map.verify.fixture-v3",
+      "outcome_rule": "harness-factory-map.normalize.outcome-v3",
+      "result_rule": "harness-factory-map.normalize.result-v3",
+      "recovery_rule": "harness-factory-map.normalize.recovery-v3",
+      "invalidated_evidence_rule": "none"
+    },
+    "normalization": "Adapter-derived shared outcome and recovery metadata: an unknown relationship target is unevaluable input and maps to REFUSE."
+  }
+}

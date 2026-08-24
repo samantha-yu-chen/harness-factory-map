@@ -61,9 +61,15 @@ production room boundaries.
 
 ## Next safe coding task
 
-Extract ontology-neutral validator fixtures for duplicate authoritative owners,
-unresolved/self relationships, provider-consumer drift, event drift, missing
-cost drivers, hot-path accounting and repository forcing functions. The output
-should be JSON inputs plus expected findings that a later Python map validator
-can replay. Label every exported rule `legacy_behaviour`; do not derive v0.10
-invariants or design a replacement schema in the same change.
+P3.3 fixture extraction is complete on
+`migration/p33-factory-map-fixtures-v3`. It exports 18 ontology-neutral,
+executable legacy cases for authoritative ownership, relationships, operation
+and event compatibility, cost drivers, hot-path accounting, and repository
+forcing-function findings under fixture contract v3.0. Each negative case has
+an executable accepted recovery, and budget overruns remain report-only. See
+`docs/EXPERIMENT-FIXTURE-EXPORT.md`.
+
+The next safe task is independent review and root catalogue adjudication. Do
+not extend the Agent Factory ontology, treat synthetic unit inputs as room
+evidence, add runtime infrastructure, or assign a future Python owner while
+that review is pending.
