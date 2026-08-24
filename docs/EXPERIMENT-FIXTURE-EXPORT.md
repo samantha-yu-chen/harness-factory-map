@@ -1,7 +1,20 @@
 # P3.3 Legacy Fixture Export
 
-**Status:** complete on `migration/p33-factory-map-fixtures-v3`; pending
-independent review
+**Status:** independent review complete; merged as accepted `main` `3ebfdb8`,
+catalogued and accepted by root P4. All 18 fixtures are catalogued with zero
+gaps: 16 `required_in_python` and 2 `historical_only`. The adjudication of
+record is
+`../prod-eng-govrn-op-model/docs/p4-fixture-catalogue-adjudication.md`, with the
+machine record in
+`../prod-eng-govrn-op-model/catalogue/experiment-fixture-catalogue.json`; no
+merge SHA is quoted for the P4 record itself, so cite the document. Every
+exported fixture is retained whatever its disposition, and
+`CURRENT-DIRECTION.md` carries the per-fixture dispositions. `source_repository`
+is provenance only: being catalogued assigns this repository no future runtime
+or repository ownership, which stays deferred to P6.
+
+Superseded status line, retained as history: "complete on
+`migration/p33-factory-map-fixtures-v3`; pending independent review".
 
 **Contract:**
 `../prod-eng-govrn-op-model/docs/experiment-fixture-contract.md` v3.0
